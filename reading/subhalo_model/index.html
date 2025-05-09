@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subhalo Mass Model &mdash; haccytrees  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=26d47c55" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=187304be"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex/" />
+    <link rel="search" title="Search" href="../../search/" />
+    <link rel="next" title="Creating Branch-Matrices" href="../branch_matrices/" />
+    <link rel="prev" title="Dealing with Fragments" href="../fragments/" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../" class="icon icon-home">
+            haccytrees
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../">HaccyTrees Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Merger Forests</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../layout/">Merger Forest Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fragments/">Dealing with Fragments</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Subhalo Mass Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#creating-subhalo-data">Creating subhalo data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#accessing-subhalos">Accessing subhalos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#following-subhalo-evolutions">Following subhalo evolutions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#haccytrees.mergertrees.create_submass_data"><code class="docutils literal notranslate"><span class="pre">create_submass_data()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../branch_matrices/">Creating Branch-Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization/">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../simulations/">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../creating/">Creating Merger Forests</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extra utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utils/temporary_storage/">Temporary Storage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../">haccytrees</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Subhalo Mass Model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/reading/subhalo_model.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="subhalo-mass-model">
+<h1>Subhalo Mass Model<a class="headerlink" href="#subhalo-mass-model" title="Link to this heading"></a></h1>
+<p>The HACC merger trees (unlike the core-catalogs) do not contain any substructure
+information. However, it is still possible to model the mass-loss of the merging
+halos, using the subhalo mass model discussed in <a class="reference internal" href="#sultan2020" id="id1"><span>[Sultan2020]</span></a>. This model only
+depends on the mass of the subhalo and the host halo at infall:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}m(t + \Delta t) =
+\begin{cases}
+     m(t) \; \exp -\frac{\Delta t}{\tau} &amp; \zeta = 0 \\
+     m(t) \left[
+         1 + \zeta \left(
+         \frac{m(t)}{M_\mathrm{host}(t)}
+         \right)^\zeta \frac{\Delta t}{\tau}
+     \right]^{-1 / \zeta} &amp; \mathrm{else},
+\end{cases}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\tau\)</span> is the characteristic timescale of the subhalo mass loss (see
+paper) and <span class="math notranslate nohighlight">\(\zeta\)</span> and <span class="math notranslate nohighlight">\(A\)</span> are free model parameters. In
+<a class="reference internal" href="#sultan2020" id="id2"><span>[Sultan2020]</span></a>, <span class="math notranslate nohighlight">\(\zeta=0.1\)</span> and <span class="math notranslate nohighlight">\(A=1.1\)</span> have been found providing a
+good fit over a large range of halo masses and redshifts.</p>
+<section id="creating-subhalo-data">
+<h2>Creating subhalo data<a class="headerlink" href="#creating-subhalo-data" title="Link to this heading"></a></h2>
+<p>The function <a class="reference internal" href="#haccytrees.mergertrees.create_submass_data" title="haccytrees.mergertrees.create_submass_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_submass_data()</span></code></a> applies this mass-model to a merger
+forest and allows querying the substructure masses of any halo in the forest. It
+can be used as shown in this Last Journey example, where we decide to ignore
+subhalos below a mass of <span class="math notranslate nohighlight">\(1 \times 10^{10} h^{-1}M_\odot\)</span> and also
+generate substructure statistics for each host halo:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">subhalo_data</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">create_submass_data</span><span class="p">(</span>
+    <span class="n">forest</span><span class="p">,</span>
+    <span class="s1">&#39;LastJourney&#39;</span><span class="p">,</span>
+    <span class="n">mass_threshold</span><span class="o">=</span><span class="mf">1e10</span><span class="p">,</span>
+    <span class="n">compute_fsub_stats</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Setting <code class="docutils literal notranslate"><span class="pre">compute_fsub_stats=True</span></code> will add two columns to <code class="docutils literal notranslate"><span class="pre">forest</span></code>,
+<code class="docutils literal notranslate"><span class="pre">fsubmax</span></code> and <code class="docutils literal notranslate"><span class="pre">fsubtot</span></code>. The are defined as</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}f_\mathrm{sub, max} &amp;= \frac{\max_i M_\mathrm{sub}}{M_\mathrm{host}}\\
+f_\mathrm{sub, tot} &amp;= \frac{\sum_i M_\mathrm{sub}}{M_\mathrm{host}},\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(i\)</span> runs over all subhalos of the host above the mass threshold.</p>
+</section>
+<section id="accessing-subhalos">
+<h2>Accessing subhalos<a class="headerlink" href="#accessing-subhalos" title="Link to this heading"></a></h2>
+<p>Individual subhalo masses can be accessed using the <code class="docutils literal notranslate"><span class="pre">subdata_offset</span></code> and
+<code class="docutils literal notranslate"><span class="pre">subdata_size</span></code> arrays in conjunction with the <code class="docutils literal notranslate"><span class="pre">subhalo_data</span></code> arrays. Let’s
+find the subhalos of the most massive halo in our forest and plot their mass
+distribution relative to the host halo:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">target_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">])</span>
+<span class="n">start_idx</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;subdata_offset&#39;</span><span class="p">][</span><span class="n">target_idx</span><span class="p">]</span>
+<span class="n">end_idx</span> <span class="o">=</span> <span class="n">start_idx</span> <span class="o">+</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;subdata_size&#39;</span><span class="p">][</span><span class="n">target_idx</span><span class="p">]</span>
+<span class="n">subhalo_masses</span> <span class="o">=</span> <span class="n">subhalo_data</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">][</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">target_mass</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">][</span><span class="n">target_idx</span><span class="p">]</span>
+<span class="n">target_tnidx</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_index&#39;</span><span class="p">][</span><span class="n">target_idx</span><span class="p">]</span>
+<span class="n">h</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">subhalo_masses</span><span class="o">/</span><span class="n">target_mass</span><span class="p">),</span> <span class="mi">50</span><span class="p">,</span> <span class="n">histtype</span><span class="o">=</span><span class="s1">&#39;step&#39;</span><span class="p">);</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">yscale</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="n">xlim</span><span class="o">=</span><span class="n">e</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span>
+       <span class="n">xlabel</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$\log M_\mathrm</span><span class="si">{sub}</span><span class="s1"> \; / \; M_\mathrm</span><span class="si">{host}</span><span class="s1">$&#39;</span><span class="p">,</span>
+       <span class="n">ylabel</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$N_\mathrm</span><span class="si">{sub}</span><span class="s1">$&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Halo </span><span class="si">{</span><span class="n">target_tnidx</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">subhalo_masses</span><span class="p">)</span><span class="si">}</span><span class="s1"> subhalos&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+<figure class="align-center" id="id4">
+<img alt="../../_images/subhalo_masses.svg" src="../../_images/subhalo_masses.svg" />
+<figcaption>
+<p><span class="caption-text">Mass distribution of the subhalos belonging to the most massive halo in our
+sample (<code class="docutils literal notranslate"><span class="pre">tree_node_index=2247296630669714101</span></code>, <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">1.28e15</span> <span class="pre">#</span> <span class="pre">h-1</span> <span class="pre">Msun</span></code>).</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="following-subhalo-evolutions">
+<h2>Following subhalo evolutions<a class="headerlink" href="#following-subhalo-evolutions" title="Link to this heading"></a></h2>
+<p>It is also possible to follow the (modeled) mass evolution of a merging halo as
+it merges and becomes a subhalo. The following example shows how one can do
+this for a merger into the halo discussed above.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="haccytrees.mergertrees.create_submass_data">
+<span class="sig-prename descclassname"><span class="pre">haccytrees.mergertrees.</span></span><span class="sig-name descname"><span class="pre">create_submass_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zeta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute_fsub_stats</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/mergertrees/submassmodel/#create_submass_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.mergertrees.create_submass_data" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>zeta</strong> (<em>float</em>)</p></li>
+<li><p><strong>A</strong> (<em>float</em>)</p></li>
+<li><p><strong>mass_threshold</strong> (<em>float</em><em> | </em><em>None</em>)</p></li>
+<li><p><strong>compute_fsub_stats</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<div role="list" class="citation-list">
+<div class="citation" id="sultan2020" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span>Sultan2020<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id1">1</a>,<a role="doc-backlink" href="#id2">2</a>)</span>
+<p>Sultan et al. (2020)
+arXiv: <a class="reference external" href="https://arxiv.org/abs/2012.09262">2012.09262</a></p>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Michael Buehlmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

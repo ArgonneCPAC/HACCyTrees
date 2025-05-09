@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Examples &mdash; haccytrees  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=26d47c55" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=187304be"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex/" />
+    <link rel="search" title="Search" href="../../search/" />
+    <link rel="next" title="Creating Merger Forests" href="../../creating/" />
+    <link rel="prev" title="Simulations" href="../simulations/" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../" class="icon icon-home">
+            haccytrees
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../">HaccyTrees Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Merger Forests</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../layout/">Merger Forest Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fragments/">Dealing with Fragments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../subhalo_model/">Subhalo Mass Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../branch_matrices/">Creating Branch-Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization/">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../simulations/">Simulations</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#average-mass-growth">Average Mass-Growth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#major-merger-rate">Major Merger Rate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#nucleation-rate">Nucleation Rate</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../creating/">Creating Merger Forests</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extra utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utils/temporary_storage/">Temporary Storage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../">haccytrees</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Examples</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/reading/examples.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h1>
+<section id="average-mass-growth">
+<h2>Average Mass-Growth<a class="headerlink" href="#average-mass-growth" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define 3 mass-bins</span>
+<span class="n">mass_bins</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="mf">1e12</span><span class="p">,</span> <span class="mf">2e12</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1e13</span><span class="p">,</span> <span class="mf">2e13</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1e14</span><span class="p">,</span> <span class="mf">2e14</span><span class="p">)</span>
+<span class="p">]</span>
+
+<span class="c1"># a mask to select all z=0 halos</span>
+<span class="n">z0_mask</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;snapnum&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">100</span>
+
+<span class="c1"># where we will store the mass evolution for each bin</span>
+<span class="n">mean_massfrac</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mlim</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mass_bins</span><span class="p">):</span>
+    <span class="c1"># creating a target mask for halos at z=0 and in the mass-bin</span>
+    <span class="n">target_mask</span> <span class="o">=</span> <span class="n">z0_mask</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">mlim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> \
+                          <span class="o">&amp;</span> <span class="p">(</span><span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">mlim</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">target_idx</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;halo_index&#39;</span><span class="p">][</span><span class="n">target_mask</span><span class="p">]</span>
+    
+    <span class="c1"># this will create a matrix of shape (ntargets, nsteps), where each column </span>
+    <span class="c1"># is the main progenitor branch of a target. It contains the indices to the </span>
+    <span class="c1"># forest data, and is -1 if the halo does not exist at that time</span>
+    <span class="n">mainbranch_index</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">get_mainbranch_indices</span><span class="p">(</span>
+        <span class="n">forest</span><span class="p">,</span> <span class="n">simulation</span><span class="o">=</span><span class="s1">&#39;LastJourney&#39;</span><span class="p">,</span> <span class="n">target_index</span><span class="o">=</span><span class="n">target_idx</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Get the mass of the main branches</span>
+    <span class="n">active_mask</span> <span class="o">=</span> <span class="n">mainbranch_index</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">mainbranch_mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">mainbranch_index</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">mainbranch_mass</span><span class="p">[</span><span class="n">active_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">][</span><span class="n">mainbranch_index</span><span class="p">[</span><span class="n">active_mask</span><span class="p">]]</span>
+    
+    <span class="c1"># Normalize by the final mass</span>
+    <span class="n">mainbranch_mass</span> <span class="o">/=</span> <span class="n">mainbranch_mass</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">][:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    
+    <span class="c1"># Take the average over all halos</span>
+    <span class="n">mainbranch_mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">mainbranch_mass</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">mean_massfrac</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mainbranch_mass</span>
+    
+    
+<span class="c1"># this is just to get the scale factors associated with each step (matrix row)</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">Simulation</span><span class="o">.</span><span class="n">simulations</span><span class="p">[</span><span class="s1">&#39;LastJourney&#39;</span><span class="p">]</span>
+<span class="n">scale_factors</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">step2a</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">cosmotools_steps</span><span class="p">))</span>
+
+<span class="c1"># plotting the average mass evolution</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mlim</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mass_bins</span><span class="p">):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="n">scale_factors</span><span class="p">,</span> 
+        <span class="n">mean_massfrac</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> 
+        <span class="n">label</span><span class="o">=</span><span class="sa">fr</span><span class="s2">&quot;$M_\mathrm</span><span class="se">{{</span><span class="s2">FoF</span><span class="se">}}</span><span class="s2">(z=0) \in [1, \; 2] &quot;</span>
+              <span class="sa">fr</span><span class="s2">&quot;\times 10^</span><span class="se">{{</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">mlim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">:</span><span class="s2">.0f</span><span class="se">}}</span><span class="si">}</span><span class="s2"> &quot;</span>
+              <span class="sa">fr</span><span class="s2">&quot;\; h^</span><span class="se">{{</span><span class="s2">-1</span><span class="se">}}</span><span class="s2">M_\odot$&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+    <span class="n">yscale</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mf">1e-3</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;scale factor $a$&#39;</span><span class="p">,</span> 
+    <span class="n">ylabel</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$\langle M_\mathrm</span><span class="si">{FoF}</span><span class="s1"> \; / \; M_\mathrm</span><span class="si">{FoF}</span><span class="s1">(z=0) \rangle$&#39;</span>
+<span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../../_images/massgrowth_example.svg" src="../../_images/massgrowth_example.svg" />
+</section>
+<section id="major-merger-rate">
+<h2>Major Merger Rate<a class="headerlink" href="#major-merger-rate" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define 3 mass-bins</span>
+<span class="n">mass_bins</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="mf">1e12</span><span class="p">,</span> <span class="mf">2e12</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1e13</span><span class="p">,</span> <span class="mf">2e13</span><span class="p">),</span>
+    <span class="p">(</span><span class="mf">1e14</span><span class="p">,</span> <span class="mf">2e14</span><span class="p">)</span>
+<span class="p">]</span>
+
+<span class="n">relative_thresholds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">]</span>
+
+<span class="c1"># a mask to select all z=0 halos</span>
+<span class="n">z0_mask</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;snapnum&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">100</span>
+
+<span class="c1"># where we will store the merger probability for each mass bin</span>
+<span class="n">merger_probability</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mlim</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mass_bins</span><span class="p">):</span>
+    <span class="c1"># creating a target mask for halos at z=0 and in the mass-bin</span>
+    <span class="n">target_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">z0_mask</span><span class="p">)</span>
+    <span class="n">target_mask</span> <span class="o">&amp;=</span> <span class="p">(</span><span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">mlim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> 
+    <span class="n">target_mask</span> <span class="o">&amp;=</span> <span class="p">(</span><span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">mlim</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">target_idx</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;halo_index&#39;</span><span class="p">][</span><span class="n">target_mask</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">target_idx</span><span class="p">))</span>
+    
+    <span class="c1"># Create a matrix of shape (ntargets, nsteps), where each row is the main</span>
+    <span class="c1"># progenitor branch of a target. It contains the indices to the forest data,</span>
+    <span class="c1"># and is -1 if the halo does not exist at that time</span>
+    <span class="n">mainbranch_index</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">get_mainbranch_indices</span><span class="p">(</span>
+        <span class="n">forest</span><span class="p">,</span> <span class="n">simulation</span><span class="o">=</span><span class="s1">&#39;LastJourney&#39;</span><span class="p">,</span> <span class="n">target_index</span><span class="o">=</span><span class="n">target_idx</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># mask of the matrix elements that are &quot;filled&quot;</span>
+    <span class="n">active_mask</span> <span class="o">=</span> <span class="n">mainbranch_index</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    
+    <span class="c1"># For all halos in the matrix, find the main progenitor index and the main merger index</span>
+    <span class="n">mainprog_index</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">get_nth_progenitor_indices</span><span class="p">(</span>
+        <span class="n">forest</span><span class="p">,</span> <span class="n">progenitor_array</span><span class="p">,</span> <span class="n">target_index</span><span class="o">=</span><span class="n">mainbranch_index</span><span class="p">[</span><span class="n">active_mask</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">)</span>
+    <span class="n">mainmerger_index</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">get_nth_progenitor_indices</span><span class="p">(</span>
+        <span class="n">forest</span><span class="p">,</span> <span class="n">progenitor_array</span><span class="p">,</span> <span class="n">target_index</span><span class="o">=</span><span class="n">mainbranch_index</span><span class="p">[</span><span class="n">active_mask</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span>
+    <span class="p">)</span>
+    
+    <span class="c1"># Calculate merger ratio at the locations where there are mergers</span>
+    <span class="c1"># (i.e. where mainmerger_index &gt; 0)</span>
+    <span class="n">mainprog_mass</span>   <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">][</span><span class="n">mainprog_index</span><span class="p">[</span><span class="n">mainmerger_index</span> <span class="o">&gt;=</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="n">mainmerger_mass</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">][</span><span class="n">mainmerger_index</span><span class="p">[</span><span class="n">mainmerger_index</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]]</span>
+    <span class="n">merger_ratio</span> <span class="o">=</span> <span class="n">mainmerger_mass</span> <span class="o">/</span> <span class="n">mainprog_mass</span>
+    <span class="c1"># Expand it to the &quot;active&quot; part of the matrix</span>
+    <span class="n">merger_ratio_active</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mainprog_index</span><span class="p">))</span>
+    <span class="n">merger_ratio_active</span><span class="p">[</span><span class="n">mainmerger_index</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">merger_ratio</span>
+    <span class="c1"># Expand it to the matrix</span>
+    <span class="n">merger_ratio_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">mainbranch_index</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">merger_ratio_matrix</span><span class="p">[</span><span class="n">active_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">merger_ratio_active</span>
+    
+    <span class="c1"># The probability for a halo to undergo a major merger at a specific snapshot</span>
+    <span class="c1"># (along the main progenitor branch)</span>
+    <span class="n">total_halos_per_sn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">active_mask</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">major_mergers_per_sn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">merger_ratio_matrix</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> 
+            <span class="k">for</span> <span class="n">threshold</span> <span class="ow">in</span> <span class="n">relative_thresholds</span><span class="p">])</span>
+    
+    <span class="n">merger_probability</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">major_mergers_per_sn</span> <span class="o">/</span> <span class="n">total_halos_per_sn</span>
+    <span class="n">merger_probability</span><span class="p">[</span><span class="n">i</span><span class="p">][:,</span> <span class="n">total_halos_per_sn</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    
+<span class="c1"># Get the scale factors associated with each step (matrix row)</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">Simulation</span><span class="o">.</span><span class="n">simulations</span><span class="p">[</span><span class="s1">&#39;LastJourney&#39;</span><span class="p">]</span>
+<span class="n">scale_factors</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">step2a</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">cosmotools_steps</span><span class="p">))</span>
+<span class="c1"># Get the time difference between steps in Gyr</span>
+<span class="n">lookback_times</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">step2lookback</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">cosmotools_steps</span><span class="p">))</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="n">lookback_times</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">lookback_times</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+<span class="c1"># plotting the major merger probability at every timestep</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mlim</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mass_bins</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">rt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">relative_thresholds</span><span class="p">):</span>
+        <span class="c1"># Convert merger rate per snapshot to merger rate per Gyr</span>
+        <span class="n">merger_rate</span> <span class="o">=</span> <span class="n">merger_probability</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">/</span> <span class="n">dt</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">scale_factors</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">merger_rate</span><span class="p">,</span> 
+                <span class="n">label</span><span class="o">=</span><span class="sa">fr</span><span class="s2">&quot;$M_\mathrm</span><span class="se">{{</span><span class="s2">FoF</span><span class="se">}}</span><span class="s2">(z=0) \in [1, \; 2] &quot;</span>
+                      <span class="sa">fr</span><span class="s2">&quot;\times 10^</span><span class="se">{{</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">mlim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">:</span><span class="s2">.0f</span><span class="se">}}</span><span class="si">}</span><span class="s2"> &quot;</span>
+                      <span class="sa">fr</span><span class="s2">&quot;\; h^</span><span class="se">{{</span><span class="s2">-1</span><span class="se">}}</span><span class="s2">M_\odot$, &quot;</span>
+                      <span class="sa">fr</span><span class="s2">&quot;$m_\mathrm</span><span class="se">{{</span><span class="s2">th</span><span class="se">}}</span><span class="s2">=</span><span class="si">{</span><span class="n">rt</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">$&quot;</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;tab:blue&#39;</span><span class="p">,</span> <span class="s1">&#39;tab:red&#39;</span><span class="p">,</span> <span class="s1">&#39;tab:orange&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">linestyle</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+    <span class="n">yscale</span><span class="o">=</span><span class="s1">&#39;log&#39;</span><span class="p">,</span>
+    <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;scale factor $a$&#39;</span><span class="p">,</span> 
+    <span class="n">ylabel</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;major mergers / halo / Gyr&#39;</span>
+<span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../../_images/mergerrate_example.svg" src="../../_images/mergerrate_example.svg" />
+</section>
+<section id="nucleation-rate">
+<h2>Nucleation Rate<a class="headerlink" href="#nucleation-rate" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Michael Buehlmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

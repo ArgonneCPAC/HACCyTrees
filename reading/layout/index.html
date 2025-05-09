@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Merger Forest Layout &mdash; haccytrees  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=26d47c55" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=187304be"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex/" />
+    <link rel="search" title="Search" href="../../search/" />
+    <link rel="next" title="Getting Started" href="../getting_started/" />
+    <link rel="prev" title="HaccyTrees Documentation" href="../../" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../" class="icon icon-home">
+            haccytrees
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../">HaccyTrees Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Merger Forests</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Merger Forest Layout</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#available-columns">Available Columns</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fragments/">Dealing with Fragments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../subhalo_model/">Subhalo Mass Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../branch_matrices/">Creating Branch-Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization/">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../simulations/">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../creating/">Creating Merger Forests</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extra utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utils/temporary_storage/">Temporary Storage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../">haccytrees</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Merger Forest Layout</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/reading/layout.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="merger-forest-layout">
+<span id="sec-forest-layout"></span><h1>Merger Forest Layout<a class="headerlink" href="#merger-forest-layout" title="Link to this heading"></a></h1>
+<p>The forest data is stored in HDF5 files, in one-dimensional arrays under the
+group <code class="docutils literal notranslate"><span class="pre">forest</span></code>. If the forest is split into multiple files, each file is
+<cite>closed</cite>, i.e. individual trees are never split.</p>
+<p>Instead of using array pointers, the tree-hierarchy is embedded in the ordering
+of the data. Array pointers to descendant and progenitor halos can be generated
+during the read-in of the forest data, see
+<a class="reference internal" href="../getting_started/#haccytrees.mergertrees.read_forest" title="haccytrees.mergertrees.read_forest"><code class="xref py py-meth docutils literal notranslate"><span class="pre">haccytrees.mergertrees.read_forest()</span></code></a>. The tree data is ordered depth-first
+and by <code class="docutils literal notranslate"><span class="pre">tree-node-mass</span></code>, i.e. a main-progenitor branch is contiguous in the
+array, starting from the root halo. This layout also has the advantage that a
+sub-tree (e.g. starting from a progenitor at redshift 1) is contiguous in the
+data arrays. To facilitate extracting a sub-tree, there is a forest array
+<code class="docutils literal notranslate"><span class="pre">branch_size</span></code>, which stores the size of each halo’s subtree.</p>
+<p>The following figure illustrates a small forest with two trees, spanning 10
+snapshots:</p>
+<figure class="align-center" id="id1">
+<a class="reference internal image-reference" href="../../_images/mergertree_layout_sketch.svg"><img alt="../../_images/mergertree_layout_sketch.svg" src="../../_images/mergertree_layout_sketch.svg" style="width: 400px;" /></a>
+<figcaption>
+<p><span class="caption-text">Memory layout of a tree. Numbers show the array position, arrows incidate
+mergers. Each row is the main progenitor branch of the first halo in that
+row, columns are snapshots, starting with the latest snapshot (z=0) on the
+left.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>The trees start with the root halo at the latest snapshot, followed by its main
+progenitor branch. Then, the array continues with the earliest merger into this
+branch and its progenitors, and so on. In the following table, we list the
+branch size of each of the halos. Note that <code class="docutils literal notranslate"><span class="pre">branch_size</span></code> refers to the size
+of the subtree starting at this halo.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>index</p></th>
+<th class="head"><p>snapnum</p></th>
+<th class="head"><p>branch_size</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>9</p></td>
+<td><p>46</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p>8</p></td>
+<td><p>33</p></td>
+</tr>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>7</p></td>
+<td><p>32</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>6</p></td>
+<td><p>16</p></td>
+</tr>
+<tr class="row-even"><td><p>4</p></td>
+<td><p>5</p></td>
+<td><p>15</p></td>
+</tr>
+<tr class="row-odd"><td><p>5</p></td>
+<td><p>4</p></td>
+<td><p>8</p></td>
+</tr>
+<tr class="row-even"><td><p>6</p></td>
+<td><p>3</p></td>
+<td><p>7</p></td>
+</tr>
+<tr class="row-odd"><td><p>7</p></td>
+<td><p>2</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-even"><td><p>8</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-odd"><td><p>9</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>10</p></td>
+<td><p>2</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-odd"><td><p>11</p></td>
+<td><p>1</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p>12</p></td>
+<td><p>0</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>13</p></td>
+<td><p>4</p></td>
+<td><p>6</p></td>
+</tr>
+<tr class="row-even"><td><p>14</p></td>
+<td><p>3</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-odd"><td><p>15</p></td>
+<td><p>2</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p>16</p></td>
+<td><p>1</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>17</p></td>
+<td><p>3</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-even"><td><p>18</p></td>
+<td><p>2</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-odd"><td><p>…</p></td>
+<td><p>…</p></td>
+<td><p>…</p></td>
+</tr>
+<tr class="row-even"><td><p>46</p></td>
+<td><p>9</p></td>
+<td><p>13</p></td>
+</tr>
+<tr class="row-odd"><td><p>47</p></td>
+<td><p>8</p></td>
+<td><p>12</p></td>
+</tr>
+<tr class="row-even"><td><p>…</p></td>
+<td><p>…</p></td>
+<td><p>…</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal notranslate"><span class="pre">snapnum</span></code> column and the ordering of our data are sufficient to
+reconstruct the tree structure. During read-in of the forests, the code
+constructs additional arrays that help navigating the tree, without having to be
+aware of the data layout:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">desc_index</span></code>: the array index to the descendant halo</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">progenitor_array</span></code>, <code class="docutils literal notranslate"><span class="pre">progenitor_offset</span></code>, <code class="docutils literal notranslate"><span class="pre">progenitor_count</span></code>: These arrays
+help finding the indices of all progenitors associated with a halo, ordered
+by <code class="docutils literal notranslate"><span class="pre">tree_node_mass</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">start</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;progenitor_offset&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+<span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;progenitor_count&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+<span class="n">progenitor_indices</span> <span class="o">=</span> <span class="n">progenitor_array</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<section id="available-columns">
+<h2>Available Columns<a class="headerlink" href="#available-columns" title="Link to this heading"></a></h2>
+<p>Here is a list of all data-columns in the HDF5 files as well as the arrays that
+are automatically constructed by haccytrees during the reading of those files:</p>
+<table class="full-width docutils align-default" id="id2">
+<caption><span class="caption-text">Columns stored in the HDF5 file</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 60.0%" />
+<col style="width: 10.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Units</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>tree_node_index</p></td>
+<td><p>the unique ID given to the halo in the treenode files</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>desc_node_index</p></td>
+<td><p>the tree_node_index of the descendant halo, -1 if no
+descendant</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>fof_halo_tag</p></td>
+<td><p>the FoF halo ID given by the in-situ halofinder.
+For a fragmented halo
+(<a class="reference internal" href="../fragments/#dealing-with-fragments"><span class="std std-ref">Dealing with Fragments</span></a>),
+the tag is negative</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>snapnum</p></td>
+<td><p>the enumerated output, starting at 0 for the first
+snapshot</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>tree_node_mass</p></td>
+<td><p>the FoF mass of the halo, corrected for fragments</p></td>
+<td><p><span class="math notranslate nohighlight">\(h^{-1}M_\odot\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>fof_halo_mass</p></td>
+<td><p>the FoF mass of the halo</p></td>
+<td><p><span class="math notranslate nohighlight">\(h^{-1}M_\odot\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>fof_halo_count</p></td>
+<td><p>the number of particles in the FoF group</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>sod_halo_mass</p></td>
+<td><p>the SOD mass (usually at 200c overdensity)</p></td>
+<td><p><span class="math notranslate nohighlight">\(h^{-1}M_\odot\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>sod_halo_radius</p></td>
+<td><p>the SOD radius (usually at 200c overdensity)</p></td>
+<td><p><span class="math notranslate nohighlight">\(h^{-1}\mathrm{Mpc}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>sod_halo_cdelta</p></td>
+<td><p>the SOD concentration parameter</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>sod_halo_cdelta_error</p></td>
+<td><p>the error estimate of sod_halo_cdelta</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>sod_halo_cdelta_accum</p></td>
+<td><p>the SOD concentration parameter calculated using the
+accumulated mass algorithm</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>sod_halo_cdelta_peak</p></td>
+<td><p>the SOD concentration parameter calculated using the
+dM/dr peak algorithm</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>xoff_fof</p></td>
+<td><p>the offset of the FoF center of mass and potential
+minimum, normalized by <code class="docutils literal notranslate"><span class="pre">sod_halo_radius</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>xoff_sod</p></td>
+<td><p>the offset of the SOD center of mass and potential
+minimum, normalized by <code class="docutils literal notranslate"><span class="pre">sod_halo_radius</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>xoff_com</p></td>
+<td><p>the offset of the FoF center of mass and the SOD
+center of mass, normalized by <code class="docutils literal notranslate"><span class="pre">sod_halo_radius</span></code></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>branch_size</p></td>
+<td><p>the size (in the forest array) of the subtree
+starting at this halo</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<table class="full-width docutils align-default" id="id3">
+<caption><span class="caption-text">Additional columns generated during reading</span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 70.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>scale_factor</p></td>
+<td><p>scale factor</p></td>
+</tr>
+<tr class="row-odd"><td><p>halo_idx</p></td>
+<td><p>the array position of the halo, created during the
+reading of the forest file</p></td>
+</tr>
+<tr class="row-even"><td><p>descendant_idx</p></td>
+<td><p>the array position of the descendant halo, created
+during the reading of the forest file</p></td>
+</tr>
+<tr class="row-odd"><td><p>progenitor_count</p></td>
+<td><p>the number of progenitor this halo has</p></td>
+</tr>
+<tr class="row-even"><td><p>progenitor_offset</p></td>
+<td><p>the location in the <code class="docutils literal notranslate"><span class="pre">progenitor_array</span></code> where the
+array indices to the progenitors are stored</p></td>
+</tr>
+</tbody>
+</table>
+<p>The reader also generates a <code class="docutils literal notranslate"><span class="pre">progenitor_array</span></code> storing the indices of the
+progenitor halos for each halo. This array can be used in conjunction with
+<code class="docutils literal notranslate"><span class="pre">progenitor_count</span></code> and <code class="docutils literal notranslate"><span class="pre">progenitor_offset</span></code>. See <a class="reference internal" href="../getting_started/#sec-reading-a-forest"><span class="std std-ref">Reading a Merger Forest</span></a>
+for more details.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Michael Buehlmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
