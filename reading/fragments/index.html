@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dealing with Fragments &mdash; haccytrees  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=26d47c55" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=187304be"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex/" />
+    <link rel="search" title="Search" href="../../search/" />
+    <link rel="next" title="Subhalo Mass Model" href="../subhalo_model/" />
+    <link rel="prev" title="Getting Started" href="../getting_started/" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../" class="icon icon-home">
+            haccytrees
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../">HaccyTrees Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Merger Forests</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../layout/">Merger Forest Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Dealing with Fragments</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#identifying-fragments">Identifying Fragments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#properties-of-minor-fragments">Properties of Minor Fragments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#haccytrees.mergertrees.split_fragment_tag"><code class="docutils literal notranslate"><span class="pre">split_fragment_tag()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#haccytrees.mergertrees.fix_fragment_properties"><code class="docutils literal notranslate"><span class="pre">fix_fragment_properties()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../subhalo_model/">Subhalo Mass Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../branch_matrices/">Creating Branch-Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization/">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../simulations/">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../creating/">Creating Merger Forests</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extra utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utils/temporary_storage/">Temporary Storage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../">haccytrees</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Dealing with Fragments</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/reading/fragments.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="dealing-with-fragments">
+<h1>Dealing with Fragments<a class="headerlink" href="#dealing-with-fragments" title="Link to this heading"></a></h1>
+<p>During a simulation run, halos sometimes come within the FoF linking length
+(i.e. merge), but later disassociate again. Since we generally assume that halos
+don’t split, these “wrongly” merged halos are disentangled in a post-processing
+step, and labeled as fragments during the time they were part of a “combined”
+FoF group.</p>
+<p>However, some of the halo properties are only calculated once for each FoF group
+on-the-fly during the simulation, e.g. the SOD properties. Therefore, the SOD
+property is only known for the “major” fragment in a split FoF group, and not
+for the “minor” fragments. It is important to keep this in mind whenever dealing
+with properties that are not aware of the fragment status.</p>
+<p>HaccyTrees includes some functionality that attempts to correct those properties
+for minor fragments, discussed further below.</p>
+<section id="identifying-fragments">
+<h2>Identifying Fragments<a class="headerlink" href="#identifying-fragments" title="Link to this heading"></a></h2>
+<p>The fragment status is encoded in the <code class="docutils literal notranslate"><span class="pre">fof_halo_tag</span></code>, which is composed of the
+original FoF tag that was assigned on-the-fly, as well as the fragment index.
+Index 0 corresponds to the “main” or “major” fragment, for which we can assume
+that the SOD properties are correct. Minor fragments will have a fragment index
+larger than 0.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">fof_halo_tag</span></code> for fragments is constructed with the following scheme:</p>
+<div class="math notranslate nohighlight">
+\[-1 \cdot \Big[ \text{fragment index (16 bit)} \; \Big| \; \text{parent fof tag (48 bit} \Big]\]</div>
+<p>The two components can be extracted with the function
+<a class="reference internal" href="#haccytrees.mergertrees.split_fragment_tag" title="haccytrees.mergertrees.split_fragment_tag"><code class="xref py py-func docutils literal notranslate"><span class="pre">split_fragment_tag()</span></code></a>, which can be applied to all negative
+<code class="docutils literal notranslate"><span class="pre">fof_halo_tag</span></code> to find the original FoF tag as well as the fragment index.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Since the merger-tree forests for large simulations are split among multiple
+files, determined by the positions of the root halos at z=0, <strong>it is not
+guaranteed that the main fragment is in the same file as the minor
+fragments</strong>, in case belong to distinct trees (i.e. they don’t share the same
+root halo / they never merge). The affected fragments will all be located at
+the boundary of the file extent, i.e. their main fragment can be found in the
+file that covers the neighboring subvolume.</p>
+</div>
+</section>
+<section id="properties-of-minor-fragments">
+<h2>Properties of Minor Fragments<a class="headerlink" href="#properties-of-minor-fragments" title="Link to this heading"></a></h2>
+<p>As previously noted, some quantities are only computed once per FoF group and
+normally only apply for the main fragment in a split FoF halo (fragment index
+0). However, minor fragments will be assigned the same value, which generally
+is not correct.</p>
+<p>One can either mask out these affected branches by identifying the minor
+fragments (see previous section) or attempt to “correct” the properties by
+looking at the properties before and after the halo became a minor fragment and
+doing some sort of interplolation inbetween. The function
+<a class="reference internal" href="#haccytrees.mergertrees.fix_fragment_properties" title="haccytrees.mergertrees.fix_fragment_properties"><code class="xref py py-func docutils literal notranslate"><span class="pre">fix_fragment_properties()</span></code></a> provides two kind of corrections that can be
+applied to all minor fragments in a forest, either by linearly interpolating
+between the starting and ending value, or by setting the properties to a
+constant value.</p>
+<p>As an example, here is how one would “correct” the SOD mass, radius, and
+concentration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="n">time</span>
+<span class="n">forest</span><span class="p">,</span> <span class="n">progenitor_array</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">read_forest</span><span class="p">(</span>
+    <span class="s2">&quot;/data/a/cpac/mbuehlmann/LastJourney/forest/m000p.forest.000.hdf5&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;LastJourney&#39;</span><span class="p">,</span> <span class="n">nchunks</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">chunknum</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 558 ms, sys: 1.04 s, total: 1.6 s
+Wall time: 1.6 s
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="n">time</span>
+<span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">fix_fragment_properties</span><span class="p">(</span>
+    <span class="n">forest</span><span class="p">,</span>
+    <span class="p">[</span><span class="s1">&#39;sod_halo_mass&#39;</span><span class="p">,</span> <span class="s1">&#39;sod_halo_radius&#39;</span><span class="p">,</span> <span class="s1">&#39;sod_halo_cdelta&#39;</span><span class="p">],</span>
+    <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_fragfix_const&#39;</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;constant_reverse&#39;</span><span class="p">,</span>
+    <span class="n">mask_negative</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">fix_fragment_properties</span><span class="p">(</span>
+    <span class="n">forest</span><span class="p">,</span>
+    <span class="p">[</span><span class="s1">&#39;sod_halo_mass&#39;</span><span class="p">,</span> <span class="s1">&#39;sod_halo_radius&#39;</span><span class="p">,</span> <span class="s1">&#39;sod_halo_cdelta&#39;</span><span class="p">],</span>
+    <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_fragfix_lin&#39;</span><span class="p">,</span>
+    <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+    <span class="n">mask_negative</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>CPU times: user 817 ms, sys: 80.3 ms, total: 898 ms
+Wall time: 896 ms
+</pre></div>
+</div>
+<p>After these function calls, additional arrays are added to the forest, suffixed
+with <code class="docutils literal notranslate"><span class="pre">_fragfix_lin</span></code> and <code class="docutils literal notranslate"><span class="pre">_fragfix_const</span></code>. For the following figure, we pick
+a halo in the Last Journey simulation that is fragmented at snapshot number 95
+and plot the evolution of the <code class="docutils literal notranslate"><span class="pre">tree_node_mass</span></code>, <code class="docutils literal notranslate"><span class="pre">sod_halo_mass</span></code>,
+<code class="docutils literal notranslate"><span class="pre">sod_halo_radius</span></code>, and <code class="docutils literal notranslate"><span class="pre">sod_halo_cdelta</span></code> for the major fragment and a minor
+fragment:</p>
+<figure class="align-default" id="id1">
+<img alt="../../_images/fragment_treatment.svg" src="../../_images/fragment_treatment.svg" />
+<figcaption>
+<p><span class="caption-text">Evolution of the tree-node mass, SOD mass, SOD radius, and SOD concentration
+(from top to bottom) of the major and a minor fragment branch. The time where
+the two halos share the same FoF group is highlighted in grey. Blue and
+orange lines show the constant and linear corrections for the minor fragment.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>Node that in the original catalog, the SOD properties of the minor fragment have
+the same value as the ones of the major fragment, by construction. After
+applying the corrections, the SOD mass and SOD radius are either linearly
+interpolated or set to a constant value (the quantities that the halo has once
+it becomes the major fragment or an independant halo). Since <code class="docutils literal notranslate"><span class="pre">cdelta</span> <span class="pre">==</span> <span class="pre">-1</span></code>
+when the minor fragment becomes independant, no interpolation is done (since we
+set <code class="docutils literal notranslate"><span class="pre">mask_negative=True</span></code>), but instead <code class="docutils literal notranslate"><span class="pre">cdelta</span></code> is set to -1 throughout the
+minor-fragment phase.</p>
+<p>Not that the minor and major fragments eventually merge.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="haccytrees.mergertrees.split_fragment_tag">
+<span class="sig-prename descclassname"><span class="pre">haccytrees.mergertrees.</span></span><span class="sig-name descname"><span class="pre">split_fragment_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/haccytrees/mergertrees/fragments/#split_fragment_tag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.mergertrees.split_fragment_tag" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-prename descclassname"><span class="pre">haccytrees.mergertrees.</span></span><span class="sig-name descname"><span class="pre">split_fragment_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span></dt>
+<dd><p>Extracting the original fof_tag and fragment index from fragments</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tag</strong> – the fof_tag of the fragment, has to be negative by definition</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>fof_tag</em> – the original fof_tag of the FoF halo the fragment is associated with</p></li>
+<li><p><em>fragment_idx</em> – the index / enumeration of the fragment (0 == main fragment)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition-notes admonition">
+<p class="admonition-title">Notes</p>
+<p>This function can also be used with numpy arrays directly</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="haccytrees.mergertrees.fix_fragment_properties">
+<span class="sig-prename descclassname"><span class="pre">haccytrees.mergertrees.</span></span><span class="sig-name descname"><span class="pre">fix_fragment_properties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'_fragfix'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'constant_reverse'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_negative</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/mergertrees/fragments/#fix_fragment_properties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.mergertrees.fix_fragment_properties" title="Link to this definition"></a></dt>
+<dd><p>Correct properties of minor fragments</p>
+<p>The SOD data stored in the merger tree forest files will be wrong for
+fragmented FoF groups, if the halo is not the major fragment of this group.
+This function attempts to fix those values by either linearly interpolate
+or setting the SOD properties to a constant value during the times when
+a halo is a minor fragment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>forest</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>ndarray</em><em>]</em>) – the full merger tree forest data</p></li>
+<li><p><strong>keys</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – list of the columns to which the correction should be applied</p></li>
+<li><p><strong>inplace</strong> (<em>bool</em>) – if True, the column will be updated in-place, otherwise, a new array
+will be created with the original name and suffix appended</p></li>
+<li><p><strong>suffix</strong> (<em>str</em>) – if not in-place, the new array will be named <code class="docutils literal notranslate"><span class="pre">old_column</span> <span class="pre">+</span> <span class="pre">suffix</span></code></p></li>
+<li><p><strong>interpolation</strong> (<em>str</em>) – <p>the type of correction to apply. Currently supported are:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;constant_reverse&quot;</span></code>: set the properties to the value the halo has
+when becoming a non-minor-fragment or independent (“reverse” in time)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;linear&quot;</span></code>: linearly interpolate (in snapshot-space) the property
+values from before and after being a minor fragment</p></li>
+</ul>
+</p></li>
+<li><p><strong>mask_negative</strong> (<em>bool</em>) – if True, will not attempt to do a linear interpolation if either the
+starting or ending value is negative, e.g. for an invalid concentration
+parameter. Instead, the property will be set to the negative value
+during the minor-fragment phase.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<div class="admonition-examples admonition">
+<p class="admonition-title">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">fix_fragment_properties</span><span class="p">(</span><span class="n">forest</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="s1">&#39;sod_halo_mass&#39;</span><span class="p">,</span> <span class="s1">&#39;sod_halo_radius&#39;</span><span class="p">,</span> <span class="s1">&#39;sod_halo_cdelta&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_fragfix_const&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;constant_reverse&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">fix_fragment_properties</span><span class="p">(</span><span class="n">forest</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">[</span><span class="s1">&#39;sod_halo_mass&#39;</span><span class="p">,</span> <span class="s1">&#39;sod_halo_radius&#39;</span><span class="p">,</span> <span class="s1">&#39;sod_halo_cdelta&#39;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;_fragfix_lin&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">mask_negative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Michael Buehlmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

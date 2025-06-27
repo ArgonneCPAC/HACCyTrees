@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulations &mdash; haccytrees  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=26d47c55" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=187304be"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex/" />
+    <link rel="search" title="Search" href="../../search/" />
+    <link rel="next" title="Examples" href="../examples/" />
+    <link rel="prev" title="Visualization" href="../visualization/" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../" class="icon icon-home">
+            haccytrees
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../">HaccyTrees Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Merger Forests</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../layout/">Merger Forest Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fragments/">Dealing with Fragments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../subhalo_model/">Subhalo Mass Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../branch_matrices/">Creating Branch-Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization/">Visualization</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Simulations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#available-simulations">Available simulations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#alphaq">AlphaQ</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#borgcube">BorgCube</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#discoverylcdm">DiscoveryLCDM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#discoveryw0wa">DiscoveryW0WA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#farpoint">Farpoint</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#farpointsv">FarpointSV</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lastjourney">LastJourney</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lastjourneysv">LastJourneySV</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#outerrim">OuterRim</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#haccytrees.simulations.Cosmology"><code class="docutils literal notranslate"><span class="pre">Cosmology</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#haccytrees.simulations.Cosmology.hubble_parameter"><code class="docutils literal notranslate"><span class="pre">Cosmology.hubble_parameter()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#haccytrees.simulations.Cosmology.hubble_time"><code class="docutils literal notranslate"><span class="pre">Cosmology.hubble_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#haccytrees.simulations.Cosmology.lookback_time"><code class="docutils literal notranslate"><span class="pre">Cosmology.lookback_time()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#haccytrees.simulations.Cosmology.virial_overdensity"><code class="docutils literal notranslate"><span class="pre">Cosmology.virial_overdensity()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#haccytrees.simulations.Simulation"><code class="docutils literal notranslate"><span class="pre">Simulation</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../creating/">Creating Merger Forests</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extra utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utils/temporary_storage/">Temporary Storage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../">haccytrees</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Simulations</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/reading/simulations.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="simulations">
+<h1>Simulations<a class="headerlink" href="#simulations" title="Link to this heading"></a></h1>
+<section id="available-simulations">
+<h2>Available simulations<a class="headerlink" href="#available-simulations" title="Link to this heading"></a></h2>
+<section id="alphaq">
+<span id="sim-alphaq"></span><h3>AlphaQ<a class="headerlink" href="#alphaq" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p class="rubric">Cosmology</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_m\)</span> = 0.26479</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_b\)</span> = 0.04479</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_\Lambda\)</span> = 0.73521</div>
+<div class="line"><span class="math notranslate nohighlight">\(\sigma_8 = 0.8\)</span></div>
+</div>
+<p class="rubric">Simulation Volume</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(L = 256 \; h^{-1}\mathrm{Mpc}\)</span></div>
+<div class="line">NP = 1024</div>
+<div class="line"><span class="math notranslate nohighlight">\(m_p = 1.1483e+09 \; h^{-1}M_\odot\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(z_\mathrm{start} = 200\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(n_\mathrm{steps} = 500\)</span></div>
+</div>
+</div></blockquote>
+</section>
+<section id="borgcube">
+<span id="sim-borgcube"></span><h3>BorgCube<a class="headerlink" href="#borgcube" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p class="rubric">Cosmology</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_m\)</span> = 0.26479</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_b\)</span> = 0.04479</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_\Lambda\)</span> = 0.73521</div>
+<div class="line"><span class="math notranslate nohighlight">\(\sigma_8 = 0.8\)</span></div>
+</div>
+<p class="rubric">Simulation Volume</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(L = 800 \; h^{-1}\mathrm{Mpc}\)</span></div>
+<div class="line">NP = 2304</div>
+<div class="line"><span class="math notranslate nohighlight">\(m_p = 3.0764e+09 \; h^{-1}M_\odot\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(z_\mathrm{start} = 200.0\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(n_\mathrm{steps} = 500\)</span></div>
+</div>
+</div></blockquote>
+</section>
+<section id="discoverylcdm">
+<span id="sim-discoverylcdm"></span><h3>DiscoveryLCDM<a class="headerlink" href="#discoverylcdm" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p class="rubric">Cosmology</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_m\)</span> = 0.30690</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_b\)</span> = 0.04870</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_\Lambda\)</span> = 0.69310</div>
+<div class="line"><span class="math notranslate nohighlight">\(\sigma_8 = 0.8135\)</span></div>
+</div>
+<p class="rubric">Simulation Volume</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(L = 1019.55 \; h^{-1}\mathrm{Mpc}\)</span></div>
+<div class="line">NP = 6720</div>
+<div class="line"><span class="math notranslate nohighlight">\(m_p = 2.9747e+08 \; h^{-1}M_\odot\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(z_\mathrm{start} = 200.0\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(n_\mathrm{steps} = 500\)</span></div>
+</div>
+</div></blockquote>
+</section>
+<section id="discoveryw0wa">
+<span id="sim-discoveryw0wa"></span><h3>DiscoveryW0WA<a class="headerlink" href="#discoveryw0wa" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p class="rubric">Cosmology</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_m\)</span> = 0.34388</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_b\)</span> = 0.05358</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_\Lambda\)</span> = 0.65612</div>
+<div class="line"><span class="math notranslate nohighlight">\(\sigma_8 = 0.7917\)</span></div>
+</div>
+<p class="rubric">Simulation Volume</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(L = 969.9 \; h^{-1}\mathrm{Mpc}\)</span></div>
+<div class="line">NP = 6720</div>
+<div class="line"><span class="math notranslate nohighlight">\(m_p = 2.8694e+08 \; h^{-1}M_\odot\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(z_\mathrm{start} = 200.0\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(n_\mathrm{steps} = 500\)</span></div>
+</div>
+</div></blockquote>
+</section>
+<section id="farpoint">
+<span id="sim-farpoint"></span><h3>Farpoint<a class="headerlink" href="#farpoint" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p class="rubric">Cosmology</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_m\)</span> = 0.30964</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_b\)</span> = 0.04897</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_\Lambda\)</span> = 0.69036</div>
+<div class="line"><span class="math notranslate nohighlight">\(\sigma_8 = 0.8102\)</span></div>
+</div>
+<p class="rubric">Simulation Volume</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(L = 1000 \; h^{-1}\mathrm{Mpc}\)</span></div>
+<div class="line">NP = 12288</div>
+<div class="line"><span class="math notranslate nohighlight">\(m_p = 4.6317e+07 \; h^{-1}M_\odot\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(z_\mathrm{start} = 200.0\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(n_\mathrm{steps} = 500\)</span></div>
+</div>
+</div></blockquote>
+</section>
+<section id="farpointsv">
+<span id="sim-farpointsv"></span><h3>FarpointSV<a class="headerlink" href="#farpointsv" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p class="rubric">Cosmology</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_m\)</span> = 0.30964</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_b\)</span> = 0.04897</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_\Lambda\)</span> = 0.69036</div>
+<div class="line"><span class="math notranslate nohighlight">\(\sigma_8 = 0.8102\)</span></div>
+</div>
+<p class="rubric">Simulation Volume</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(L = 250 \; h^{-1}\mathrm{Mpc}\)</span></div>
+<div class="line">NP = 3072</div>
+<div class="line"><span class="math notranslate nohighlight">\(m_p = 4.6317e+07 \; h^{-1}M_\odot\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(z_\mathrm{start} = 200.0\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(n_\mathrm{steps} = 500\)</span></div>
+</div>
+</div></blockquote>
+</section>
+<section id="lastjourney">
+<span id="sim-lastjourney"></span><h3>LastJourney<a class="headerlink" href="#lastjourney" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p class="rubric">Cosmology</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_m\)</span> = 0.30964</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_b\)</span> = 0.04897</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_\Lambda\)</span> = 0.69036</div>
+<div class="line"><span class="math notranslate nohighlight">\(\sigma_8 = 0.8102\)</span></div>
+</div>
+<p class="rubric">Simulation Volume</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(L = 3400 \; h^{-1}\mathrm{Mpc}\)</span></div>
+<div class="line">NP = 10752</div>
+<div class="line"><span class="math notranslate nohighlight">\(m_p = 2.7174e+09 \; h^{-1}M_\odot\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(z_\mathrm{start} = 200.0\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(n_\mathrm{steps} = 500\)</span></div>
+</div>
+</div></blockquote>
+</section>
+<section id="lastjourneysv">
+<span id="sim-lastjourneysv"></span><h3>LastJourneySV<a class="headerlink" href="#lastjourneysv" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p class="rubric">Cosmology</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_m\)</span> = 0.30964</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_b\)</span> = 0.04897</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_\Lambda\)</span> = 0.69036</div>
+<div class="line"><span class="math notranslate nohighlight">\(\sigma_8 = 0.8102\)</span></div>
+</div>
+<p class="rubric">Simulation Volume</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(L = 250 \; h^{-1}\mathrm{Mpc}\)</span></div>
+<div class="line">NP = 1024</div>
+<div class="line"><span class="math notranslate nohighlight">\(m_p = 1.2506e+09 \; h^{-1}M_\odot\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(z_\mathrm{start} = 200.0\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(n_\mathrm{steps} = 500\)</span></div>
+</div>
+</div></blockquote>
+</section>
+<section id="outerrim">
+<span id="sim-outerrim"></span><h3>OuterRim<a class="headerlink" href="#outerrim" title="Link to this heading"></a></h3>
+<blockquote>
+<div><p class="rubric">Cosmology</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_m\)</span> = 0.26479</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_b\)</span> = 0.04479</div>
+<div class="line"><span class="math notranslate nohighlight">\(\Omega_\Lambda\)</span> = 0.73521</div>
+<div class="line"><span class="math notranslate nohighlight">\(\sigma_8 = 0.8\)</span></div>
+</div>
+<p class="rubric">Simulation Volume</p>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(L = 3000.0 \; h^{-1}\mathrm{Mpc}\)</span></div>
+<div class="line">NP = 10240</div>
+<div class="line"><span class="math notranslate nohighlight">\(m_p = 1.8479e+09 \; h^{-1}M_\odot\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(z_\mathrm{start} = 200.0\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(n_\mathrm{steps} = 500\)</span></div>
+</div>
+</div></blockquote>
+</section>
+</section>
+<hr class="docutils" />
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="haccytrees.simulations.Cosmology">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">haccytrees.simulations.</span></span><span class="sig-name descname"><span class="pre">Cosmology</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Omega_m</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Omega_b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Omega_L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s8</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wa</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/simulations/#Cosmology"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.simulations.Cosmology" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>Omega_m</strong> (<em>float</em>)</p></li>
+<li><p><strong>Omega_b</strong> (<em>float</em>)</p></li>
+<li><p><strong>Omega_L</strong> (<em>float</em>)</p></li>
+<li><p><strong>h</strong> (<em>float</em>)</p></li>
+<li><p><strong>ns</strong> (<em>float</em>)</p></li>
+<li><p><strong>s8</strong> (<em>float</em>)</p></li>
+<li><p><strong>w0</strong> (<em>float</em>)</p></li>
+<li><p><strong>wa</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="haccytrees.simulations.Cosmology.hubble_parameter">
+<span class="sig-name descname"><span class="pre">hubble_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/simulations/#Cosmology.hubble_parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.simulations.Cosmology.hubble_parameter" title="Link to this definition"></a></dt>
+<dd><p>redshift dependend Hubble parameter, H(a)</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="haccytrees.simulations.Cosmology.hubble_time">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hubble_time</span></span><a class="headerlink" href="#haccytrees.simulations.Cosmology.hubble_time" title="Link to this definition"></a></dt>
+<dd><p>Hubble time in Gyr (1/H0)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="haccytrees.simulations.Cosmology.lookback_time">
+<span class="sig-name descname"><span class="pre">lookback_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/simulations/#Cosmology.lookback_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.simulations.Cosmology.lookback_time" title="Link to this definition"></a></dt>
+<dd><p>Lookback time in Gyr from a=1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="haccytrees.simulations.Cosmology.virial_overdensity">
+<span class="sig-name descname"><span class="pre">virial_overdensity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/simulations/#Cosmology.virial_overdensity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.simulations.Cosmology.virial_overdensity" title="Link to this definition"></a></dt>
+<dd><p>Bryan &amp; Norman Delta_vir</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="haccytrees.simulations.Simulation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">haccytrees.simulations.</span></span><span class="sig-name descname"><span class="pre">Simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsteps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zstart</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zfin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">np</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cosmo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#haccytrees.simulations.Cosmology" title="haccytrees.simulations.Cosmology"><span class="pre">haccytrees.simulations.Cosmology</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cosmotools_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fullalive_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/simulations/#Simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.simulations.Simulation" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>)</p></li>
+<li><p><strong>nsteps</strong> (<em>int</em>)</p></li>
+<li><p><strong>zstart</strong> (<em>float</em>)</p></li>
+<li><p><strong>zfin</strong> (<em>float</em>)</p></li>
+<li><p><strong>rl</strong> (<em>float</em>)</p></li>
+<li><p><strong>ng</strong> (<em>int</em>)</p></li>
+<li><p><strong>np</strong> (<em>int</em>)</p></li>
+<li><p><strong>cosmo</strong> (<a class="reference internal" href="#haccytrees.simulations.Cosmology" title="haccytrees.simulations.Cosmology"><em>Cosmology</em></a>)</p></li>
+<li><p><strong>cosmotools_steps</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>fullalive_steps</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Michael Buehlmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
