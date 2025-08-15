@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Creating Merger Forests &mdash; haccytrees  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=26d47c55" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=187304be"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex/" />
+    <link rel="search" title="Search" href="../search/" />
+    <link rel="next" title="Temporary Storage" href="../utils/temporary_storage/" />
+    <link rel="prev" title="Examples" href="../reading/examples/" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../" class="icon icon-home">
+            haccytrees
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../">HaccyTrees Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../reading/layout/">Merger Forest Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reading/getting_started/">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reading/fragments/">Dealing with Fragments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reading/subhalo_model/">Subhalo Mass Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reading/branch_matrices/">Creating Branch-Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reading/visualization/">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reading/simulations/">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reading/examples/">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating Merger Forests</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Creating Merger Forests</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#routine-outline">Routine Outline</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#distributing-the-data">Distributing the data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#finding-the-halo-ordering">Finding the halo ordering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#writing-the-data">Writing the data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-last-journey">Example: Last Journey</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#galaxy-merger-trees">Galaxy Merger trees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#haccytrees.mergertrees.assemble.catalog2tree"><code class="docutils literal notranslate"><span class="pre">catalog2tree()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extra utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../utils/temporary_storage/">Temporary Storage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../">haccytrees</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Creating Merger Forests</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/creating/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="creating-merger-forests">
+<h1>Creating Merger Forests<a class="headerlink" href="#creating-merger-forests" title="Link to this heading"></a></h1>
+<p>Merger tree forests are created from the HACC treenode files, cf. <a class="reference internal" href="#rangel2020" id="id1"><span>[Rangel2020]</span></a>.
+The code rearranges the snapshot-by-snapshot catalog format to a convenient and
+efficient tree-format. Each processed tree-file is self-contained, i.e. no trees
+are split among multiple files. See <a class="reference internal" href="../reading/layout/#sec-forest-layout"><span class="std std-ref">Merger Forest Layout</span></a> for more
+information about the final product.</p>
+<p>The MPI enabled python script in <code class="docutils literal notranslate"><span class="pre">haccytrees/scripts/treenodes2forest.py</span></code> is
+the main executable which sets up the configuration and starts the conversion
+routine contained in <a class="reference internal" href="#haccytrees.mergertrees.assemble.catalog2tree" title="haccytrees.mergertrees.assemble.catalog2tree"><code class="xref py py-meth docutils literal notranslate"><span class="pre">haccytrees.mergertrees.assemble.catalog2tree()</span></code></a>. The
+settings have to be provided to the script through a configuration file, see
+<a class="reference internal" href="#sec-assemble-configuration"><span class="std std-ref">Configuration</span></a> for an example.</p>
+<p>Installing the <code class="docutils literal notranslate"><span class="pre">haccytrees</span></code> python module (see <a class="reference internal" href="../#install-haccytrees"><span class="std std-ref">Installation</span></a>) will
+add <code class="docutils literal notranslate"><span class="pre">haccytrees-convert</span></code> to your PATH (which is a wrapper of
+<code class="docutils literal notranslate"><span class="pre">treenodes2forest.py</span></code>). The code can then be executed like</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">CONFIG</span><span class="o">=</span>treenodes2forest.cfg
+mpirun<span class="w"> </span>-n<span class="w"> </span>&lt;NPROC&gt;<span class="w"> </span>haccytrees-convert<span class="w"> </span><span class="si">${</span><span class="nv">CONFIG</span><span class="si">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Alternatively, you can run
+<code class="docutils literal notranslate"><span class="pre">mpirun</span> <span class="pre">-n</span> <span class="pre">&lt;NPROC&gt;</span> <span class="pre">python</span> <span class="pre">&lt;PATH_TO_treenodes2forest.py&gt;</span> <span class="pre">${CONFIG}</span></code></p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All treenode catalog files need to be located in a single folder. If
+<code class="docutils literal notranslate"><span class="pre">MergerTrees_updated</span></code> is being used, this folder usually does not contain
+the first snapshot. One strategy is to symlink all catalogs in
+<code class="docutils literal notranslate"><span class="pre">MergerTrees_updated</span></code> as well as the first snapshot from the
+<code class="docutils literal notranslate"><span class="pre">MergerTrees</span></code> folder into a new folder.</p>
+</div>
+<section id="routine-outline">
+<h2>Routine Outline<a class="headerlink" href="#routine-outline" title="Link to this heading"></a></h2>
+<p>The assembling of the merger forests proceeds in three main steps:</p>
+<ul class="simple">
+<li><p>distributing the halo catalogs among the MPI ranks such that each individual
+tree is fully contained on a rank.</p></li>
+<li><p>finding the correct ordering of the halos, corresponding to the layout
+described in <a class="reference internal" href="../reading/layout/#sec-forest-layout"><span class="std std-ref">Merger Forest Layout</span></a>.</p></li>
+<li><p>writing the forests to HDF5 files.</p></li>
+</ul>
+<section id="distributing-the-data">
+<h3>Distributing the data<a class="headerlink" href="#distributing-the-data" title="Link to this heading"></a></h3>
+<p>The rank to which a tree is assigned is determined by the position of the root
+halo at the last step, i.e. <span class="math notranslate nohighlight">\(z=0\)</span>. The partitioning of the simulation
+volume is determined by the <code class="xref py py-class docutils literal notranslate"><span class="pre">mpipartition.Partition</span></code>
+class, using MPI’s 3D cartesian communicator.</p>
+<p>We start by distributing the halos in the final snapshot, using the abstracted
+distribution function <code class="xref py py-meth docutils literal notranslate"><span class="pre">mpipartition.distribute()</span></code>. We then
+iterate backwards over the snapshots. The halos in each snapshot are first
+distributed by their position. Afterwards, halos that may have crossed the rank
+boundaries are accounted for by marking all halos that don’t have a local
+descendant halo. Those halos are then communicated with the 26 directly
+neighboring ranks, using a MPI graph communicator connecting each 26
+neighbor-set symmetrically. If there are still unaccounted halos left, those are
+assigned using an <code class="docutils literal notranslate"><span class="pre">all2all</span></code> exchange. This exchange functionality is
+implemented in <code class="xref py py-meth docutils literal notranslate"><span class="pre">mpipartition.exchange()</span></code>.</p>
+<p>At each step, we also take note of the descendant halo array index in the
+previous step. This information then simplifies the next step, the reordering of
+the halos to form a self-contained tree.</p>
+</section>
+<section id="finding-the-halo-ordering">
+<h3>Finding the halo ordering<a class="headerlink" href="#finding-the-halo-ordering" title="Link to this heading"></a></h3>
+<p>After the reading and distributing phase, each rank now contains all the data it
+needs to generate it’s own self-contained forest. From the descendant index
+stored during the previous phase we can then determine where in the final array
+each halo has to go in order to obtain the required layout.</p>
+<p>In a first step, we calculate the size of each subtree, starting from the
+earliest snapshot. Halos that are leaves of the tree have size 1 by definition.
+We can then iteratively add the halos size to its descendant in the next
+snapshot. After processing the latest snapshot, we know the size of each
+self-contained trees.</p>
+<p>Knowing the size of each subtree, we can then determine the halo’s position,
+starting from the latest snapshot. Each root halo in the list is offset from its
+previous halo by the size of that halos subtree. In the earlier snapshots, each
+halo is positioned at its descendant halos position plus the subtree sizes of
+the halos that have the same descendant and came earlier in the halo list. By
+previously having ordered the halos in each snapshot by decreasing mass, halos
+that have the same descendant halo are automatically ordered the same way.</p>
+<p>After this step, we know at which array position every halo in the
+snapshot-ordered catalog has to go during the next phase.</p>
+</section>
+<section id="writing-the-data">
+<h3>Writing the data<a class="headerlink" href="#writing-the-data" title="Link to this heading"></a></h3>
+<p>In order to minimize the memory requirements, all the rank-local data of each
+snapshot is stored into temporary containers (see <a class="reference internal" href="../utils/temporary_storage/#temporary-storage"><span class="std std-ref">Temporary Storage</span></a>). The
+previous step, for example, only requires the descendant index to be in memory.
+During the writing step, we now read the temporary files field-by-field, reorder
+the data according to the previously determined halo ordering, and store that
+field into an HDF5 dataset. By iterating over the fields individually, we only
+need to keep one array in memory at a time. For the full Last Journey dataset
+for example, 32 nodes were more than sufficient to process the forests.</p>
+</section>
+</section>
+<section id="configuration">
+<span id="sec-assemble-configuration"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
+<p>The configuration file is in the <cite>ini</cite> style (cf. <a class="reference external" href="https://docs.python.org/3/library/configparser.html">configparser</a>) containing information
+about the simulation, the data location, the field names in the treenode
+catalogs and the forest output, as well as some switches to optimize the
+routine. See the definition of the parameters in the following example
+configuration:</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">Example configuration for Last Journey</span><a class="headerlink" href="#id3" title="Link to this code"></a></div>
+<div class="highlight-ini notranslate"><div class="highlight"><pre><span></span><span class="c1">################################################################################</span>
+<span class="c1"># This is an example configuration for the Last Journey simulation             #</span>
+<span class="c1">#                                                                              #</span>
+<span class="c1"># The required sections are:                                                   #</span>
+<span class="c1"># - simulation: name of the simulation, data location                          #</span>
+<span class="c1"># - columns:    the naming of the columns in the treenode catalogs             #</span>
+<span class="c1"># - output:     the output file and the columns to store / calculate           #</span>
+<span class="c1"># - algorithm:  some additional switches, failure triggers, verbosity          #</span>
+<span class="c1">################################################################################</span>
+
+<span class="k">[simulation]</span>
+<span class="c1"># the simulation is used to determine cosmotools steps, scale factors, etc.</span>
+<span class="c1"># has to be supported by haccytrees/simulations.py</span>
+<span class="na">simulation</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="s">LastJourney</span>
+<span class="c1"># the base-path of the treenode catalogs. The files are assumed to be named e.g.</span>
+<span class="c1"># ./treenodes/m000p-499.treenodes</span>
+<span class="na">treenode_base</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s">./treenodes/m000p-</span>
+<span class="c1"># alternatively, you can specify it like this: (useful for galaxymergertrees!)</span>
+<span class="c1"># treenode_base     = ./treenodes/m000p-#.treenodes</span>
+
+
+<span class="k">[columns]</span>
+<span class="c1"># how the fields in the treenode catalogs are named – can change from simulation</span>
+<span class="c1"># to simulation, e.g. fof_halo_mean vs fof_halo_com.</span>
+<span class="na">fof_halo_center_x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">fof_halo_center_x</span>
+<span class="na">fof_halo_center_y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">fof_halo_center_y</span>
+<span class="na">fof_halo_center_z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">fof_halo_center_z</span>
+<span class="na">fof_halo_com_x</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">fof_halo_mean_x</span>
+<span class="na">fof_halo_com_y</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">fof_halo_mean_y</span>
+<span class="na">fof_halo_com_z</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">fof_halo_mean_z</span>
+<span class="na">sod_halo_center_x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">sod_halo_min_pot_x</span>
+<span class="na">sod_halo_center_y</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">sod_halo_min_pot_y</span>
+<span class="na">sod_halo_center_z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">sod_halo_min_pot_z</span>
+<span class="na">sod_halo_com_x</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">sod_halo_mean_x</span>
+<span class="na">sod_halo_com_y</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">sod_halo_mean_y</span>
+<span class="na">sod_halo_com_z</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">sod_halo_mean_z</span>
+<span class="na">sod_halo_mass</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s">sod_halo_mass</span>
+<span class="na">sod_halo_radius</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">sod_halo_radius</span>
+<span class="na">tree_node_index</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">tree_node_index</span>
+<span class="na">desc_node_index</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">desc_node_index</span>
+<span class="na">tree_node_mass</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">tree_node_mass</span>
+
+<span class="c1"># This determines which field is used to distribute the halos among the ranks.</span>
+<span class="c1"># Has to be available for all halos, e.g. not SOD positions.</span>
+<span class="na">node_position_x</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">fof_halo_center_x</span>
+<span class="na">node_position_y</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">fof_halo_center_y</span>
+<span class="na">node_position_z</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">fof_halo_center_z</span>
+
+<span class="k">[output]</span>
+<span class="c1"># The base of the output files. If `split_output` is enabled, files will be</span>
+<span class="c1"># named e.g. `m000p.forest.001.hdf5` for rank 0.</span>
+<span class="na">output_base</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">m000p.forest</span>
+<span class="c1"># If false, haccytrees will store the forest trees in a single file. Not</span>
+<span class="c1"># suitable for large simulations.</span>
+<span class="na">split_output</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">yes</span>
+<span class="c1"># The base path where temporary files will be stored. If this setting is</span>
+<span class="c1"># commented out, all the data will be kept in memory instead.</span>
+<span class="na">temporary_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">tmp/m000p.temp</span>
+<span class="c1"># The fields that will be copied to the final output. If a list of two names</span>
+<span class="c1"># are given, the treenode data given by the first one will be stored under the</span>
+<span class="c1"># second one (renaming).</span>
+<span class="na">copy_fields</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">[</span>
+<span class="w">    </span><span class="na">&quot;tree_node_index&quot;,</span>
+<span class="w">    </span><span class="na">&quot;desc_node_index&quot;,</span>
+<span class="w">    </span><span class="na">&quot;tree_node_mass&quot;,</span>
+<span class="w">    </span><span class="na">&quot;fof_halo_tag&quot;,</span>
+<span class="w">    </span><span class="na">&quot;fof_halo_count&quot;,</span>
+<span class="w">    </span><span class="na">&quot;fof_halo_mass&quot;,</span>
+<span class="w">    </span><span class="na">&quot;fof_halo_center_x&quot;,</span>
+<span class="w">    </span><span class="na">&quot;fof_halo_center_y&quot;,</span>
+<span class="w">    </span><span class="na">&quot;fof_halo_center_z&quot;,</span>
+<span class="w">    </span><span class="na">&quot;sod_halo_count&quot;,</span>
+<span class="w">    </span><span class="na">&quot;sod_halo_mass&quot;,</span>
+<span class="w">    </span><span class="na">&quot;sod_halo_radius&quot;,</span>
+<span class="w">    </span><span class="na">&quot;sod_halo_cdelta&quot;,</span>
+<span class="w">    </span><span class="na">&quot;sod_halo_cdelta_error&quot;,</span>
+<span class="w">    </span><span class="na">[&quot;sod_halo_c_acc_mass&quot;, &quot;sod_halo_cdelta_accum&quot;],</span>
+<span class="w">    </span><span class="k">[&quot;sod_halo_c_peak_mass&quot;, &quot;sod_halo_cdelta_peak&quot;]</span>
+<span class="w">    </span><span class="na">]</span>
+<span class="c1"># Additional fields that are derived from other fields. See</span>
+<span class="c1"># haccytrees/mergertrees/assemble/derived_fields.py for the supported options.</span>
+<span class="na">derived_fields</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s">[&quot;xoff_fof&quot;, &quot;xoff_sod&quot;, &quot;xoff_com&quot;]</span>
+
+<span class="k">[algorithm]</span>
+<span class="c1"># If no, the exchange of orphaned halos is amongst the 26 neighbors first, and</span>
+<span class="c1"># only the remaining orphans are distributed all-to-all. If yes, the orphans are</span>
+<span class="c1"># directly exchanged amongst all ranks (slower and more memory intensive).</span>
+<span class="na">do_all2all_exchange</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">no</span>
+<span class="c1"># If yes, the code will abort if an orphan cannot be assigned to a rank. If no,</span>
+<span class="c1"># the orphan will be treated as a new root, and the code continues</span>
+<span class="na">fail_on_desc_not_found</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">yes</span>
+<span class="c1"># A waittime in seconds until additional communicator (3D cart and 26-neighbor</span>
+<span class="c1"># graph) are constructed. Can mitigate some `PG not found` MPI errors that occur</span>
+<span class="c1"># on cooley without waittime (may be due to some bug in mpi4py)</span>
+<span class="na">mpi_waittime</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s">5</span>
+<span class="c1"># Increasing verbosity. Currently the max is 2, printing distribute and exchange</span>
+<span class="c1"># information from each rank.</span>
+<span class="na">verbose</span><span class="w">                </span><span class="o">=</span><span class="w"> </span><span class="s">0</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="example-last-journey">
+<h2>Example: Last Journey<a class="headerlink" href="#example-last-journey" title="Link to this heading"></a></h2>
+<p>Creating the <a class="reference internal" href="../reading/simulations/#sim-lastjourney"><span class="std std-ref">LastJourney</span></a> Merger Forest took 3.2 hours on cooley,
+using 32 nodes with 12 MPI ranks each (total of 384 ranks). The majority of the
+time was spent in reading the treenode files (1.3 hours) and doing temporary IO
+(1h) in order to keep the memory consumption in each rank low. A much smaller
+fraction of the total time is in MPI communications (distribute and exchange),
+~40min. Calculating the sub-tree sizes and data ordering took an
+insignificant amount of time.</p>
+<figure class="align-center" id="id4">
+<a class="reference internal image-reference" href="../_images/LJ_timing_32nodes.svg"><img alt="../_images/LJ_timing_32nodes.svg" src="../_images/LJ_timing_32nodes.svg" style="width: 100%;" /></a>
+<figcaption>
+<p><span class="caption-text">Processing time of Last Journey, split by task</span><a class="headerlink" href="#id4" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="galaxy-merger-trees">
+<h2>Galaxy Merger trees<a class="headerlink" href="#galaxy-merger-trees" title="Link to this heading"></a></h2>
+<p>The code also works for galaxy mergertrees. See
+<code class="docutils literal notranslate"><span class="pre">haccytrees/scripts/treenodes2forest.galaxymergertree.example.cfg</span></code> for an
+example configuration file.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="haccytrees.mergertrees.assemble.catalog2tree">
+<span class="sig-prename descclassname"><span class="pre">haccytrees.mergertrees.assemble.</span></span><span class="sig-name descname"><span class="pre">catalog2tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">treenode_base</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temporary_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_all2all_exchange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fail_on_desc_not_found</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpi_waittime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/haccytrees/mergertrees/assemble/catalogs2trees/#catalog2tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.mergertrees.assemble.catalog2tree" title="Link to this definition"></a></dt>
+<dd><p>The main routine that converts treenode-catalogs to HDF5 treenode forests</p>
+<p>[add basic outline of algorithm]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simulation</strong> (<a class="reference internal" href="../reading/simulations/#haccytrees.simulations.Simulation" title="haccytrees.simulations.Simulation"><em>Simulation</em></a>) – a <code class="xref py py-class docutils literal notranslate"><span class="pre">Simulation</span></code> instance containing the cosmotools steps</p></li>
+<li><p><strong>treenode_base</strong> (<em>str</em>) – the base path for the treenode files.
+- if <code class="docutils literal notranslate"><span class="pre">treenode_base</span></code> contains <code class="docutils literal notranslate"><span class="pre">#</span></code>, <code class="docutils literal notranslate"><span class="pre">#</span></code> will be replace by the current step number
+- otherwise, the path will be completed by appending <code class="docutils literal notranslate"><span class="pre">[step].treenodes</span></code>.</p></li>
+<li><p><strong>fields_config</strong> (<em>FieldsConfig</em>) – a <code class="xref py py-class docutils literal notranslate"><span class="pre">FieldsConfig</span></code> instance, containing the treenodes filed names</p></li>
+<li><p><strong>output_file</strong> (<em>str</em>) – base path for the output file(s)</p></li>
+<li><p><strong>temporary_path</strong> (<em>str</em><em> | </em><em>None</em>) – base path for temporary files. Note: folders must exist.</p></li>
+<li><p><strong>do_all2all_exchange</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">False</span></code>, will exchange among neighboring ranks first and then
+all2all. If <code class="docutils literal notranslate"><span class="pre">True</span></code>, will do all2all directly</p></li>
+<li><p><strong>split_output</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code>, forests will be stored in multiple HDF5 files (one per
+rank). If <code class="docutils literal notranslate"><span class="pre">False</span></code>, all data will be combined in a single file (might
+not be feasible for large simulations)</p></li>
+<li><p><strong>fail_on_desc_not_found</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code>, will abort if a descendant halo cannot be found among all
+ranks. If <code class="docutils literal notranslate"><span class="pre">False</span></code>, the orphaned halo will become the root of the
+subtree.</p></li>
+<li><p><strong>mpi_waittime</strong> (<em>float</em>) – time in seconds for which the code will wait for the MPI to be
+initialized. Can help with some MPI errors (on cooley)</p></li>
+<li><p><strong>logger</strong> (<em>Callable</em><em>[</em><em>[</em><em>str</em><em>]</em><em>, </em><em>None</em><em>] </em><em>| </em><em>None</em>) – a logging function, e.g. <code class="docutils literal notranslate"><span class="pre">print</span></code></p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em> | </em><em>int</em>) – verbosity level, either 0, 1, or 2</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<div role="list" class="citation-list">
+<div class="citation" id="rangel2020" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Rangel2020</a><span class="fn-bracket">]</span></span>
+<p>Rangel et al. (2020)
+arXiv:<a class="reference external" href="https://arxiv.org/abs/2008.08519">2008.08519</a></p>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Michael Buehlmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

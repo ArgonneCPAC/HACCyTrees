@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting Started &mdash; haccytrees  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=26d47c55" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=187304be"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex/" />
+    <link rel="search" title="Search" href="../../search/" />
+    <link rel="next" title="Dealing with Fragments" href="../fragments/" />
+    <link rel="prev" title="Merger Forest Layout" href="../layout/" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../" class="icon icon-home">
+            haccytrees
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../">HaccyTrees Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Merger Forests</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../layout/">Merger Forest Layout</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#reading-a-merger-forest">Reading a Merger Forest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extracting-main-branch-matrices">Extracting Main-Branch Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#finding-major-mergers">Finding Major Mergers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#obtaining-a-histogram-of-infall-masses">Obtaining a Histogram of Infall Masses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#haccytrees.mergertrees.read_forest"><code class="docutils literal notranslate"><span class="pre">read_forest()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#haccytrees.mergertrees.get_mainbranch_indices"><code class="docutils literal notranslate"><span class="pre">get_mainbranch_indices()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#haccytrees.mergertrees.get_nth_progenitor_indices"><code class="docutils literal notranslate"><span class="pre">get_nth_progenitor_indices()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#haccytrees.mergertrees.get_infall_histogram"><code class="docutils literal notranslate"><span class="pre">get_infall_histogram()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../fragments/">Dealing with Fragments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../subhalo_model/">Subhalo Mass Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../branch_matrices/">Creating Branch-Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization/">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../simulations/">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../creating/">Creating Merger Forests</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extra utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utils/temporary_storage/">Temporary Storage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../">haccytrees</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Getting Started</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/reading/getting_started.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h1>
+<section id="reading-a-merger-forest">
+<span id="sec-reading-a-forest"></span><h2>Reading a Merger Forest<a class="headerlink" href="#reading-a-merger-forest" title="Link to this heading"></a></h2>
+<p>Merger forests are stored in the HDF5 format, and although one could read the HDF5
+file directly, the <a class="reference internal" href="#haccytrees.mergertrees.read_forest" title="haccytrees.mergertrees.read_forest"><code class="xref py py-meth docutils literal notranslate"><span class="pre">read_forest()</span></code></a> function in haccytrees provides more
+convenience, e.g. by creating additional indices that make walking the tree much
+easier and by allowing to split the forest files into self-contained chunks.</p>
+<p>For example, if we want to split a Last Journey merger forest into 10 chunks and
+read the first chunk:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">haccytrees.mergertrees</span>
+
+<span class="n">forest</span><span class="p">,</span> <span class="n">progenitor_array</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">read_forest</span><span class="p">(</span>
+    <span class="s2">&quot;/data/a/cpac/mbuehlmann/LastJourney/m000p.forest.000.hdf5&quot;</span><span class="p">,</span>
+    <span class="n">simulation</span><span class="o">=</span><span class="s2">&quot;LastJourney&quot;</span><span class="p">,</span>
+    <span class="n">nchunks</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">chunknum</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The returned <code class="docutils literal notranslate"><span class="pre">forest</span></code> is a dictionary containing one-dimensional numpy arrays.</p>
+</section>
+<section id="extracting-main-branch-matrices">
+<h2>Extracting Main-Branch Matrices<a class="headerlink" href="#extracting-main-branch-matrices" title="Link to this heading"></a></h2>
+<p>Sometimes, only the main-branch (defined by following the most massive
+progenitor at each timestep) is needed. The function <a class="reference internal" href="#haccytrees.mergertrees.get_mainbranch_indices" title="haccytrees.mergertrees.get_mainbranch_indices"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_mainbranch_indices()</span></code></a>
+is a convenient function to construct a matrix of shape <cite>(n_targets x n_steps)</cite>,
+where each column corresponds to the main branch of a halo, and each row
+corresponds to an output step of the simulation. At times where a halo does not
+exist, the index is set to -1.</p>
+<p>This index matrix can then be used to get the history of any stored halo
+parameter. As an example, we can easily extract the mass history of all halos in
+the mass-bin [1e13, 2e13] at z=0:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">z0_mask</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;snapnum&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">100</span>
+<span class="n">mlim</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1e13</span><span class="p">,</span> <span class="mf">2e13</span><span class="p">]</span>
+<span class="n">target_mask</span> <span class="o">=</span> <span class="n">z0_mask</span> \
+              <span class="o">&amp;</span> <span class="p">(</span><span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">mlim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> \
+              <span class="o">&amp;</span> <span class="p">(</span><span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">mlim</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">target_idx</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;halo_index&#39;</span><span class="p">][</span><span class="n">target_mask</span><span class="p">]</span>
+
+<span class="c1"># this will create a matrix of shape (ntargets, nsteps), where each row</span>
+<span class="c1"># is the main progenitor branch of a target. It contains the indices to the</span>
+<span class="c1"># forest data, and is -1 if the halo does not exist at that time</span>
+<span class="n">mainbranch_index</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">get_mainbranch_indices</span><span class="p">(</span>
+    <span class="n">forest</span><span class="p">,</span> <span class="n">simulation</span><span class="o">=</span><span class="s1">&#39;LastJourney&#39;</span><span class="p">,</span> <span class="n">target_index</span><span class="o">=</span><span class="n">target_idx</span>
+<span class="p">)</span>
+
+<span class="c1"># Get the mass of the main branches</span>
+<span class="n">active_mask</span> <span class="o">=</span> <span class="n">mainbranch_index</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">mainbranch_mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">mainbranch_index</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">mainbranch_mass</span><span class="p">[</span><span class="n">active_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">][</span><span class="n">mainbranch_index</span><span class="p">[</span><span class="n">active_mask</span><span class="p">]]</span>
+</pre></div>
+</div>
+</section>
+<section id="finding-major-mergers">
+<h2>Finding Major Mergers<a class="headerlink" href="#finding-major-mergers" title="Link to this heading"></a></h2>
+<p>Another common task is finding mergers above a certain relative or absolute
+threshold. To get the merger ratio from the two most massive progenitors of a
+list of target halos, the function <a class="reference internal" href="#haccytrees.mergertrees.get_nth_progenitor_indices" title="haccytrees.mergertrees.get_nth_progenitor_indices"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_nth_progenitor_indices()</span></code></a> can be
+used as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># get indices to main progenitors</span>
+<span class="n">main_progenitor_index</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">get_nth_progenitor_indices</span><span class="p">(</span>
+    <span class="n">forest</span><span class="p">,</span> <span class="n">progenitor_array</span><span class="p">,</span> <span class="n">target_index</span><span class="o">=</span><span class="n">mainbranch_index</span><span class="p">[</span><span class="n">active_mask</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span>
+<span class="p">)</span>
+
+<span class="c1"># get indices to secondary progenitors (main mergers)</span>
+<span class="n">main_merger_index</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">get_nth_progenitor_indices</span><span class="p">(</span>
+    <span class="n">forest</span><span class="p">,</span> <span class="n">progenitor_array</span><span class="p">,</span> <span class="n">target_index</span><span class="o">=</span><span class="n">mainbranch_index</span><span class="p">[</span><span class="n">active_mask</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span>
+<span class="p">)</span>
+
+<span class="c1"># the index will be negative if there&#39;s no merger, mask those out</span>
+<span class="n">merger_mask</span> <span class="o">=</span> <span class="n">main_merger_index</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+
+<span class="c1"># allocate a merger_ratio matrix, 0 by default</span>
+<span class="n">merger_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">mainbranch_index</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+<span class="c1"># fill the elements for which a merger occurred with the mass ratio</span>
+<span class="n">merger_ratio</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">active_mask</span><span class="p">)[</span><span class="n">merger_mask</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)]</span> <span class="o">=</span> \
+    <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">][</span><span class="n">main_merger_index</span><span class="p">[</span><span class="n">merger_mask</span><span class="p">]]</span> <span class="o">/</span>
+    <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">][</span><span class="n">main_progenitor_index</span><span class="p">[</span><span class="n">merger_mask</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>Major mergers can then be identified by finding the entries in <code class="docutils literal notranslate"><span class="pre">merger_ratio</span></code>
+above the major merger threshold.</p>
+<p>If an absolute major merger criteria is required, we only have to extract the
+mass of the main merger (secondary progenitor), i.e.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># get indices to secondary progenitors (main mergers)</span>
+<span class="n">main_merger_index</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">get_nth_progenitor_indices</span><span class="p">(</span>
+    <span class="n">forest</span><span class="p">,</span> <span class="n">progenitor_array</span><span class="p">,</span> <span class="n">target_index</span><span class="o">=</span><span class="n">mainbranch_index</span><span class="p">[</span><span class="n">active_mask</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="mi">2</span>
+<span class="p">)</span>
+
+<span class="c1"># the index will be negative if there&#39;s no merger, mask those out</span>
+<span class="n">merger_mask</span> <span class="o">=</span> <span class="n">main_merger_index</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+
+<span class="c1"># allocate an array containing the merger masses, 0 by default</span>
+<span class="n">merger_mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">mainbranch_index</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+<span class="c1"># fill the elements for which a merger occurred with the mass of the main merger</span>
+<span class="n">merger_mass</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">active_mask</span><span class="p">)[</span><span class="n">merger_mask</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)]</span> <span class="o">=</span> \
+    <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">][</span><span class="n">main_merger_index</span><span class="p">[</span><span class="n">merger_mask</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>Then, halos that in the last timestep underwent a major merger defined by an
+absolute mass threshold <code class="docutils literal notranslate"><span class="pre">mass_threshold</span></code>, can be selected by <code class="docutils literal notranslate"><span class="pre">merger_mass</span> <span class="pre">&gt;=</span>
+<span class="pre">mass_threshold</span></code>.</p>
+<p>In both cases, the scale factor of the last major merger can be found by finding
+the last column at which the merger ratio or merger mass is above the threshold,
+i.e.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">simulation</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">Simulation</span><span class="o">.</span><span class="n">simulations</span><span class="p">[</span><span class="s1">&#39;LastJourney&#39;</span><span class="p">]</span>
+<span class="n">scale_factors</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">step2a</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">cosmotools_steps</span><span class="p">))</span>
+<span class="n">last_snap</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">cosmotools_steps</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+<span class="c1"># major merger mask with a relative threshold</span>
+<span class="n">mm_mask</span> <span class="o">=</span> <span class="n">merger_ratio</span> <span class="o">&gt;</span> <span class="n">threshold</span>
+
+<span class="c1"># major merger mask with an absolute threshold</span>
+<span class="n">mm_mask</span> <span class="o">=</span> <span class="n">merger_mass</span> <span class="o">&gt;</span> <span class="n">threshold</span>
+
+<span class="c1"># finding the last index</span>
+<span class="n">last_mm_index</span> <span class="o">=</span> <span class="n">last_snap</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">mm_mask</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">last_mm_redshift</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">scale_factors</span><span class="p">[</span><span class="n">last_mm_index</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+
+<span class="c1"># mark all halos without any major merger with a last_mm_redshift of -1</span>
+<span class="n">last_mm_redshift</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mm_mask</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+</pre></div>
+</div>
+</section>
+<section id="obtaining-a-histogram-of-infall-masses">
+<h2>Obtaining a Histogram of Infall Masses<a class="headerlink" href="#obtaining-a-histogram-of-infall-masses" title="Link to this heading"></a></h2>
+<p>The mass distribution of the halos that merge onto the main-progenitor branches
+of a halo (i.e. the infall masses) can be obtained with the function
+<a class="reference internal" href="#haccytrees.mergertrees.get_infall_histogram" title="haccytrees.mergertrees.get_infall_histogram"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_infall_histogram()</span></code></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># target all halos at z=0 in [10**13.0, 10**13.05] mass range</span>
+<span class="n">mask</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;snapnum&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">100</span>
+<span class="n">mask</span> <span class="o">&amp;=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="o">**</span><span class="mf">13.0</span>
+<span class="n">mask</span> <span class="o">&amp;=</span> <span class="n">forest</span><span class="p">[</span><span class="s1">&#39;tree_node_mass&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="o">**</span><span class="mf">13.05</span>
+<span class="n">target_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">mask</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># upper and lower masses for histogram in log units</span>
+<span class="n">m_low</span> <span class="o">=</span> <span class="mi">11</span>
+<span class="n">m_high</span> <span class="o">=</span> <span class="mi">13</span>
+<span class="n">nbins</span> <span class="o">=</span> <span class="mi">50</span>
+
+<span class="n">infall_hist</span> <span class="o">=</span> <span class="n">haccytrees</span><span class="o">.</span><span class="n">mergertrees</span><span class="o">.</span><span class="n">get_infall_histogram</span><span class="p">(</span>
+    <span class="n">fg_forest</span><span class="p">,</span>
+    <span class="n">target_index</span><span class="p">,</span>
+    <span class="mi">10</span><span class="o">**</span><span class="n">m_low</span><span class="p">,</span>
+    <span class="mi">10</span><span class="o">**</span><span class="n">m_high</span><span class="p">,</span>
+    <span class="n">nbins</span><span class="p">)</span>
+
+<span class="c1"># calculate the bin centers</span>
+<span class="n">imass_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">m_low</span><span class="p">,</span> <span class="n">m_high</span><span class="p">,</span> <span class="n">nbins</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">imass_centers</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">imass_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">imass_edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">imass_centers</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">imass_centers</span>
+
+<span class="c1"># plot the distribution</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">imass_centers</span><span class="p">,</span> <span class="n">infall_hist</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="haccytrees.mergertrees.read_forest">
+<span class="sig-prename descclassname"><span class="pre">haccytrees.mergertrees.</span></span><span class="sig-name descname"><span class="pre">read_forest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nchunks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunknum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_non_z0_roots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/mergertrees/forest_reader/#read_forest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.mergertrees.read_forest" title="Link to this definition"></a></dt>
+<dd><p>Read a HDF5 merger-forest</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – the path to the merger forest file</p></li>
+<li><p><strong>simulation</strong> (<em>str</em><em> | </em><a class="reference internal" href="../simulations/#haccytrees.simulations.Simulation" title="haccytrees.simulations.Simulation"><em>Simulation</em></a>) – either a valid simulation name or a Simulation instance, used to add the
+scale factor to the output</p></li>
+<li><p><strong>nchunks</strong> (<em>int</em><em> | </em><em>None</em>) – if not None, the file will be split in <code class="docutils literal notranslate"><span class="pre">nchunks</span></code> equally-sized parts</p></li>
+<li><p><strong>chunknum</strong> (<em>int</em><em> | </em><em>None</em>) – if <code class="docutils literal notranslate"><span class="pre">nchunks</span></code> is set, <code class="docutils literal notranslate"><span class="pre">chunknum</span></code> determines which chunk number will
+be read. First chunk has <code class="docutils literal notranslate"><span class="pre">chunknum=0</span></code>, has to be smaller than
+<code class="docutils literal notranslate"><span class="pre">nchunks</span></code>.</p></li>
+<li><p><strong>include_fields</strong> (<em>List</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>) – the columns that will be read from the HDF5 file. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, all data
+will be read. Note: some essential columns will always be read, check
+<code class="docutils literal notranslate"><span class="pre">haccytrees.mergertrees.forest_reader._essential_fields</span></code>.</p></li>
+<li><p><strong>create_indices</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code>, will add descendant_idx``, <code class="docutils literal notranslate"><span class="pre">progenitor_count</span></code>,
+<code class="docutils literal notranslate"><span class="pre">progenitor_offset</span></code> to the forest and return the <code class="docutils literal notranslate"><span class="pre">progenitor_array</span></code></p></li>
+<li><p><strong>add_scale_factor</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code>, will add the scale factor column to the forest data</p></li>
+<li><p><strong>mass_threshold</strong> (<em>float</em><em> | </em><em>None</em>) – if not <code class="docutils literal notranslate"><span class="pre">None</span></code>, the reader will prune all halos below the specified
+mass threshold (in Msun/h)</p></li>
+<li><p><strong>include_non_z0_roots</strong> (<em>bool</em>) – if True, will also include trees that are not rooted at z=0 (i.e. halos
+that for some reason “disappear” during the evolution)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>forest</strong> (<em>Mapping[str, np.ndarray]</em>) – the merger tree forest data</p></li>
+<li><p><strong>progenitor_array</strong> (<em>Optional[np.ndarray]</em>) – a progenitor index array that can be used together with the
+<code class="docutils literal notranslate"><span class="pre">progenitor_offset</span></code> and <code class="docutils literal notranslate"><span class="pre">progenitor_count</span></code> arrays in the forest
+data in order to easily find all progenitors of a halo. Only returned if
+<code class="docutils literal notranslate"><span class="pre">create_indices=True</span></code>.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>Tuple</em>[<em>Mapping</em>[str, <em>ndarray</em>], <em>ndarray</em> | None]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="haccytrees.mergertrees.get_mainbranch_indices">
+<span class="sig-prename descclassname"><span class="pre">haccytrees.mergertrees.</span></span><span class="sig-name descname"><span class="pre">get_mainbranch_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/mergertrees/forest_manipulation/#get_mainbranch_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.mergertrees.get_mainbranch_indices" title="Link to this definition"></a></dt>
+<dd><p>Extract main progenitor branches in a matrix format: <code class="docutils literal notranslate"><span class="pre">(n_targets</span> <span class="pre">x</span> <span class="pre">n_steps)</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>forest</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>ndarray</em><em>]</em>) – the full treenode forest returned by <a class="reference internal" href="#haccytrees.mergertrees.read_forest" title="haccytrees.mergertrees.read_forest"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forest()</span></code></a></p></li>
+<li><p><strong>simulation</strong> (<em>str</em><em> | </em><a class="reference internal" href="../simulations/#haccytrees.simulations.Simulation" title="haccytrees.simulations.Simulation"><em>Simulation</em></a>) – either a valid simulation string or an instance of <code class="xref py py-class docutils literal notranslate"><span class="pre">Simulation</span></code>,
+required to get the number of cosmotools steps.</p></li>
+<li><p><strong>target_index</strong> (<em>ndarray</em>) – the indices of the halos for which the main progenitor branch should
+be extracted.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>mainbranch_indices</strong> – the indices of the halos in the main progenitor branches. Each column <cite>j</cite>
+corresponds to the main branch of the <cite>j</cite>-th target_halo. Each row
+corresponds to a cosmotools step (with 0 being the first step). At times
+where the halo did not exist, the index is <cite>-1</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="haccytrees.mergertrees.get_nth_progenitor_indices">
+<span class="sig-prename descclassname"><span class="pre">haccytrees.mergertrees.</span></span><span class="sig-name descname"><span class="pre">get_nth_progenitor_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progenitor_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/mergertrees/forest_manipulation/#get_nth_progenitor_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.mergertrees.get_nth_progenitor_indices" title="Link to this definition"></a></dt>
+<dd><p>Extract indices of the n-th most massive progenitor for each target halo</p>
+<p>The index array returned has the same length as target_index. Invalid
+indices are masked with -1 (i.e. if the halo does not have n progenitors)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>forest</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>ndarray</em><em>]</em>) – the full treenode forest returned by <a class="reference internal" href="#haccytrees.mergertrees.read_forest" title="haccytrees.mergertrees.read_forest"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forest()</span></code></a></p></li>
+<li><p><strong>progenitor_array</strong> (<em>ndarray</em>) – the full progenitor array created by <a class="reference internal" href="#haccytrees.mergertrees.read_forest" title="haccytrees.mergertrees.read_forest"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forest()</span></code></a></p></li>
+<li><p><strong>target_index</strong> (<em>ndarray</em>) – the indices of the halos for which the merger indices should be
+extracted.</p></li>
+<li><p><strong>n</strong> (<em>int</em>) – the n-th progenitor. <code class="docutils literal notranslate"><span class="pre">0</span></code> corresponds to the main progenitor, <code class="docutils literal notranslate"><span class="pre">1</span></code> to
+the main merger halo, etc.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>merger_indices</strong> – the indices of the n-th most massive progenitors (determined by the
+tree-node mass). -1 if the progenitor does not exist.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="haccytrees.mergertrees.get_infall_histogram">
+<span class="sig-prename descclassname"><span class="pre">haccytrees.mergertrees.</span></span><span class="sig-name descname"><span class="pre">get_infall_histogram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nbins</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logbins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/mergertrees/forest_manipulation/#get_infall_histogram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.mergertrees.get_infall_histogram" title="Link to this definition"></a></dt>
+<dd><p>Get a histogram of infall masses, integrated over all snapshots and target_index</p>
+<p>This function counts the halos that fall onto the main progenitor branches of the
+halos specified by target_index and bins them according to their masses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>forest</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>ndarray</em><em>]</em>) – the full treenode forest returned by <a class="reference internal" href="#haccytrees.mergertrees.read_forest" title="haccytrees.mergertrees.read_forest"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forest()</span></code></a></p></li>
+<li><p><strong>target_index</strong> (<em>ndarray</em>) – the indices of the halos for which the infall masses should be accumulated</p></li>
+<li><p><strong>mass_min</strong> (<em>float</em>) – lower mass bound for histogram</p></li>
+<li><p><strong>mass_max</strong> (<em>float</em>) – upper mass bound for histogram</p></li>
+<li><p><strong>nbins</strong> (<em>int</em>) – number of bins in the histogram, linearly or logarithmically spread from min to
+max</p></li>
+<li><p><strong>logbins</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code>, the bins will be logarithmically distributed, otherwise linearly</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>counts</strong> – the indices of the n-th most massive progenitors (determined by the
+tree-node mass). -1 if the progenitor does not exist.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Michael Buehlmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

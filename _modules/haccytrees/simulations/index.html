@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>haccytrees.simulations &mdash; haccytrees  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=26d47c55" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=187304be"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex/" />
+    <link rel="search" title="Search" href="../../../search/" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../" class="icon icon-home">
+            haccytrees
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../">HaccyTrees Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../reading/layout/">Merger Forest Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reading/getting_started/">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reading/fragments/">Dealing with Fragments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reading/subhalo_model/">Subhalo Mass Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reading/branch_matrices/">Creating Branch-Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reading/visualization/">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reading/simulations/">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reading/examples/">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../creating/">Creating Merger Forests</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extra utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils/temporary_storage/">Temporary Storage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../">haccytrees</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../">Module code</a></li>
+      <li class="breadcrumb-item active">haccytrees.simulations</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for haccytrees.simulations</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">configparser</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">ClassVar</span><span class="p">,</span> <span class="n">Dict</span>
+
+<span class="n">_rhoc</span> <span class="o">=</span> <span class="mf">2.77536627e11</span>
+<span class="n">_km_in_Mpc</span> <span class="o">=</span> <span class="mf">3.08568e19</span>
+<span class="n">_sec_in_year</span> <span class="o">=</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="mf">365.25</span>
+
+<span class="c1"># fmt: off</span>
+<span class="c1"># OuterRim sims</span>
+<span class="n">_outerrim_analysis_steps</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="mi">46</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="mi">49</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">53</span><span class="p">,</span> <span class="mi">54</span><span class="p">,</span> <span class="mi">56</span><span class="p">,</span> <span class="mi">57</span><span class="p">,</span> <span class="mi">59</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span>
+        <span class="mi">62</span><span class="p">,</span> <span class="mi">63</span><span class="p">,</span> <span class="mi">65</span><span class="p">,</span> <span class="mi">67</span><span class="p">,</span> <span class="mi">68</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">74</span><span class="p">,</span> <span class="mi">76</span><span class="p">,</span> <span class="mi">77</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">81</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">86</span><span class="p">,</span> <span class="mi">88</span><span class="p">,</span>
+        <span class="mi">90</span><span class="p">,</span> <span class="mi">92</span><span class="p">,</span> <span class="mi">95</span><span class="p">,</span> <span class="mi">97</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">107</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">116</span><span class="p">,</span> <span class="mi">119</span><span class="p">,</span> <span class="mi">121</span><span class="p">,</span>
+        <span class="mi">124</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">131</span><span class="p">,</span> <span class="mi">134</span><span class="p">,</span> <span class="mi">137</span><span class="p">,</span> <span class="mi">141</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">148</span><span class="p">,</span> <span class="mi">151</span><span class="p">,</span> <span class="mi">155</span><span class="p">,</span> <span class="mi">159</span><span class="p">,</span> <span class="mi">163</span><span class="p">,</span> <span class="mi">167</span><span class="p">,</span>
+        <span class="mi">171</span><span class="p">,</span> <span class="mi">176</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">189</span><span class="p">,</span> <span class="mi">194</span><span class="p">,</span> <span class="mi">198</span><span class="p">,</span> <span class="mi">203</span><span class="p">,</span> <span class="mi">208</span><span class="p">,</span> <span class="mi">213</span><span class="p">,</span> <span class="mi">219</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span>
+        <span class="mi">235</span><span class="p">,</span> <span class="mi">241</span><span class="p">,</span> <span class="mi">247</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">266</span><span class="p">,</span> <span class="mi">272</span><span class="p">,</span> <span class="mi">279</span><span class="p">,</span> <span class="mi">286</span><span class="p">,</span> <span class="mi">293</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">307</span><span class="p">,</span> <span class="mi">315</span><span class="p">,</span>
+        <span class="mi">323</span><span class="p">,</span> <span class="mi">331</span><span class="p">,</span> <span class="mi">338</span><span class="p">,</span> <span class="mi">355</span><span class="p">,</span> <span class="mi">365</span><span class="p">,</span> <span class="mi">373</span><span class="p">,</span> <span class="mi">382</span><span class="p">,</span> <span class="mi">392</span><span class="p">,</span> <span class="mi">401</span><span class="p">,</span> <span class="mi">411</span><span class="p">,</span> <span class="mi">421</span><span class="p">,</span> <span class="mi">432</span><span class="p">,</span>
+        <span class="mi">442</span><span class="p">,</span> <span class="mi">453</span><span class="p">,</span> <span class="mi">464</span><span class="p">,</span> <span class="mi">475</span><span class="p">,</span> <span class="mi">487</span><span class="p">,</span> <span class="mi">499</span>
+    <span class="p">]</span>
+
+<span class="n">_alphaq_analysis_steps</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="mi">44</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="mi">46</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="mi">49</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">53</span><span class="p">,</span> <span class="mi">54</span><span class="p">,</span> <span class="mi">56</span><span class="p">,</span> <span class="mi">57</span><span class="p">,</span> <span class="mi">59</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span>
+        <span class="mi">62</span><span class="p">,</span> <span class="mi">63</span><span class="p">,</span> <span class="mi">65</span><span class="p">,</span> <span class="mi">67</span><span class="p">,</span> <span class="mi">68</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">74</span><span class="p">,</span> <span class="mi">76</span><span class="p">,</span> <span class="mi">77</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">81</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">86</span><span class="p">,</span> <span class="mi">88</span><span class="p">,</span>
+        <span class="mi">90</span><span class="p">,</span> <span class="mi">92</span><span class="p">,</span> <span class="mi">95</span><span class="p">,</span> <span class="mi">97</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">107</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">116</span><span class="p">,</span> <span class="mi">119</span><span class="p">,</span> <span class="mi">121</span><span class="p">,</span>
+        <span class="mi">124</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">131</span><span class="p">,</span> <span class="mi">134</span><span class="p">,</span> <span class="mi">137</span><span class="p">,</span> <span class="mi">141</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">148</span><span class="p">,</span> <span class="mi">151</span><span class="p">,</span> <span class="mi">155</span><span class="p">,</span> <span class="mi">159</span><span class="p">,</span> <span class="mi">163</span><span class="p">,</span> <span class="mi">167</span><span class="p">,</span>
+        <span class="mi">171</span><span class="p">,</span> <span class="mi">176</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">189</span><span class="p">,</span> <span class="mi">194</span><span class="p">,</span> <span class="mi">198</span><span class="p">,</span> <span class="mi">203</span><span class="p">,</span> <span class="mi">208</span><span class="p">,</span> <span class="mi">213</span><span class="p">,</span> <span class="mi">219</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span>
+        <span class="mi">235</span><span class="p">,</span> <span class="mi">241</span><span class="p">,</span> <span class="mi">247</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">259</span><span class="p">,</span> <span class="mi">266</span><span class="p">,</span> <span class="mi">272</span><span class="p">,</span> <span class="mi">279</span><span class="p">,</span> <span class="mi">286</span><span class="p">,</span> <span class="mi">293</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">307</span><span class="p">,</span> <span class="mi">315</span><span class="p">,</span>
+        <span class="mi">323</span><span class="p">,</span> <span class="mi">331</span><span class="p">,</span> <span class="mi">338</span><span class="p">,</span> <span class="mi">347</span><span class="p">,</span> <span class="mi">355</span><span class="p">,</span> <span class="mi">365</span><span class="p">,</span> <span class="mi">373</span><span class="p">,</span> <span class="mi">382</span><span class="p">,</span> <span class="mi">392</span><span class="p">,</span> <span class="mi">401</span><span class="p">,</span> <span class="mi">411</span><span class="p">,</span> <span class="mi">421</span><span class="p">,</span> <span class="mi">432</span><span class="p">,</span>
+        <span class="mi">442</span><span class="p">,</span> <span class="mi">453</span><span class="p">,</span> <span class="mi">464</span><span class="p">,</span> <span class="mi">475</span><span class="p">,</span> <span class="mi">487</span><span class="p">,</span> <span class="mi">499</span>
+    <span class="p">]</span>
+
+<span class="c1"># Last Journey and Farpoint sims</span>
+<span class="n">_ljfp_analysis_steps</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="mi">46</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="mi">49</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">53</span><span class="p">,</span> <span class="mi">54</span><span class="p">,</span> <span class="mi">56</span><span class="p">,</span> <span class="mi">57</span><span class="p">,</span> <span class="mi">59</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span>
+        <span class="mi">62</span><span class="p">,</span> <span class="mi">63</span><span class="p">,</span> <span class="mi">65</span><span class="p">,</span> <span class="mi">67</span><span class="p">,</span> <span class="mi">68</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">74</span><span class="p">,</span> <span class="mi">76</span><span class="p">,</span> <span class="mi">77</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">81</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">86</span><span class="p">,</span> <span class="mi">88</span><span class="p">,</span>
+        <span class="mi">90</span><span class="p">,</span> <span class="mi">92</span><span class="p">,</span> <span class="mi">95</span><span class="p">,</span> <span class="mi">97</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">107</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">116</span><span class="p">,</span> <span class="mi">119</span><span class="p">,</span> <span class="mi">121</span><span class="p">,</span>
+        <span class="mi">124</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">131</span><span class="p">,</span> <span class="mi">134</span><span class="p">,</span> <span class="mi">137</span><span class="p">,</span> <span class="mi">141</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">148</span><span class="p">,</span> <span class="mi">151</span><span class="p">,</span> <span class="mi">155</span><span class="p">,</span> <span class="mi">159</span><span class="p">,</span> <span class="mi">163</span><span class="p">,</span> <span class="mi">167</span><span class="p">,</span>
+        <span class="mi">171</span><span class="p">,</span> <span class="mi">176</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">189</span><span class="p">,</span> <span class="mi">194</span><span class="p">,</span> <span class="mi">198</span><span class="p">,</span> <span class="mi">203</span><span class="p">,</span> <span class="mi">208</span><span class="p">,</span> <span class="mi">213</span><span class="p">,</span> <span class="mi">219</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span>
+        <span class="mi">235</span><span class="p">,</span> <span class="mi">241</span><span class="p">,</span> <span class="mi">247</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">259</span><span class="p">,</span> <span class="mi">266</span><span class="p">,</span> <span class="mi">272</span><span class="p">,</span> <span class="mi">279</span><span class="p">,</span> <span class="mi">286</span><span class="p">,</span> <span class="mi">293</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">307</span><span class="p">,</span> <span class="mi">315</span><span class="p">,</span>
+        <span class="mi">323</span><span class="p">,</span> <span class="mi">331</span><span class="p">,</span> <span class="mi">338</span><span class="p">,</span> <span class="mi">347</span><span class="p">,</span> <span class="mi">355</span><span class="p">,</span> <span class="mi">365</span><span class="p">,</span> <span class="mi">373</span><span class="p">,</span> <span class="mi">382</span><span class="p">,</span> <span class="mi">392</span><span class="p">,</span> <span class="mi">401</span><span class="p">,</span> <span class="mi">411</span><span class="p">,</span> <span class="mi">421</span><span class="p">,</span> <span class="mi">432</span><span class="p">,</span>
+        <span class="mi">442</span><span class="p">,</span> <span class="mi">453</span><span class="p">,</span> <span class="mi">464</span><span class="p">,</span> <span class="mi">475</span><span class="p">,</span> <span class="mi">487</span><span class="p">,</span> <span class="mi">499</span><span class="p">]</span>
+
+<span class="c1"># Last Journey and Farpoint sims</span>
+<span class="n">_borgcube_analysis_steps</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="mi">46</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="mi">49</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">53</span><span class="p">,</span> <span class="mi">54</span><span class="p">,</span> <span class="mi">56</span><span class="p">,</span> <span class="mi">57</span><span class="p">,</span> <span class="mi">59</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span>
+        <span class="mi">62</span><span class="p">,</span> <span class="mi">63</span><span class="p">,</span> <span class="mi">65</span><span class="p">,</span> <span class="mi">67</span><span class="p">,</span> <span class="mi">68</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">74</span><span class="p">,</span> <span class="mi">76</span><span class="p">,</span> <span class="mi">77</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">81</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">86</span><span class="p">,</span> <span class="mi">88</span><span class="p">,</span>
+        <span class="mi">90</span><span class="p">,</span> <span class="mi">92</span><span class="p">,</span> <span class="mi">95</span><span class="p">,</span> <span class="mi">97</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">107</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">116</span><span class="p">,</span> <span class="mi">119</span><span class="p">,</span> <span class="mi">121</span><span class="p">,</span>
+        <span class="mi">124</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">131</span><span class="p">,</span> <span class="mi">134</span><span class="p">,</span> <span class="mi">137</span><span class="p">,</span> <span class="mi">141</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">148</span><span class="p">,</span> <span class="mi">151</span><span class="p">,</span> <span class="mi">155</span><span class="p">,</span> <span class="mi">159</span><span class="p">,</span> <span class="mi">163</span><span class="p">,</span> <span class="mi">167</span><span class="p">,</span>
+        <span class="mi">171</span><span class="p">,</span> <span class="mi">176</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">189</span><span class="p">,</span> <span class="mi">194</span><span class="p">,</span> <span class="mi">198</span><span class="p">,</span> <span class="mi">203</span><span class="p">,</span> <span class="mi">208</span><span class="p">,</span> <span class="mi">213</span><span class="p">,</span> <span class="mi">219</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span>
+        <span class="mi">235</span><span class="p">,</span> <span class="mi">241</span><span class="p">,</span> <span class="mi">247</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">259</span><span class="p">,</span> <span class="mi">266</span><span class="p">,</span> <span class="mi">272</span><span class="p">,</span> <span class="mi">279</span><span class="p">,</span> <span class="mi">286</span><span class="p">,</span> <span class="mi">293</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">307</span><span class="p">,</span> <span class="mi">315</span><span class="p">,</span>
+        <span class="mi">323</span><span class="p">,</span> <span class="mi">331</span><span class="p">,</span> <span class="mi">338</span><span class="p">,</span> <span class="mi">347</span><span class="p">,</span> <span class="mi">355</span><span class="p">,</span> <span class="mi">365</span><span class="p">,</span> <span class="mi">373</span><span class="p">,</span> <span class="mi">382</span><span class="p">,</span> <span class="mi">392</span><span class="p">,</span> <span class="mi">401</span><span class="p">,</span> <span class="mi">411</span><span class="p">,</span> <span class="mi">421</span><span class="p">,</span> <span class="mi">432</span><span class="p">,</span>
+        <span class="mi">442</span><span class="p">,</span> <span class="mi">453</span><span class="p">,</span> <span class="mi">464</span><span class="p">,</span> <span class="mi">475</span><span class="p">,</span> <span class="mi">487</span><span class="p">,</span> <span class="mi">499</span><span class="p">]</span>
+
+<span class="c1">#Discovery sims</span>
+<span class="n">_discovery_analysis_steps</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="mi">42</span><span class="p">,</span> <span class="mi">43</span><span class="p">,</span> <span class="mi">44</span><span class="p">,</span> <span class="mi">45</span><span class="p">,</span> <span class="mi">46</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="mi">49</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">53</span><span class="p">,</span> <span class="mi">54</span><span class="p">,</span> <span class="mi">56</span><span class="p">,</span> <span class="mi">57</span><span class="p">,</span> <span class="mi">59</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span>
+        <span class="mi">62</span><span class="p">,</span> <span class="mi">63</span><span class="p">,</span> <span class="mi">65</span><span class="p">,</span> <span class="mi">67</span><span class="p">,</span> <span class="mi">68</span><span class="p">,</span> <span class="mi">70</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">74</span><span class="p">,</span> <span class="mi">76</span><span class="p">,</span> <span class="mi">77</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">81</span><span class="p">,</span> <span class="mi">84</span><span class="p">,</span> <span class="mi">86</span><span class="p">,</span> <span class="mi">88</span><span class="p">,</span>
+        <span class="mi">90</span><span class="p">,</span> <span class="mi">92</span><span class="p">,</span> <span class="mi">95</span><span class="p">,</span> <span class="mi">97</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">102</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">107</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">113</span><span class="p">,</span> <span class="mi">116</span><span class="p">,</span> <span class="mi">119</span><span class="p">,</span> <span class="mi">121</span><span class="p">,</span>
+        <span class="mi">124</span><span class="p">,</span> <span class="mi">127</span><span class="p">,</span> <span class="mi">131</span><span class="p">,</span> <span class="mi">134</span><span class="p">,</span> <span class="mi">137</span><span class="p">,</span> <span class="mi">141</span><span class="p">,</span> <span class="mi">144</span><span class="p">,</span> <span class="mi">148</span><span class="p">,</span> <span class="mi">151</span><span class="p">,</span> <span class="mi">155</span><span class="p">,</span> <span class="mi">159</span><span class="p">,</span> <span class="mi">163</span><span class="p">,</span> <span class="mi">167</span><span class="p">,</span>
+        <span class="mi">171</span><span class="p">,</span> <span class="mi">176</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">184</span><span class="p">,</span> <span class="mi">189</span><span class="p">,</span> <span class="mi">194</span><span class="p">,</span> <span class="mi">198</span><span class="p">,</span> <span class="mi">203</span><span class="p">,</span> <span class="mi">208</span><span class="p">,</span> <span class="mi">213</span><span class="p">,</span> <span class="mi">219</span><span class="p">,</span> <span class="mi">224</span><span class="p">,</span> <span class="mi">230</span><span class="p">,</span>
+        <span class="mi">235</span><span class="p">,</span> <span class="mi">241</span><span class="p">,</span> <span class="mi">247</span><span class="p">,</span> <span class="mi">253</span><span class="p">,</span> <span class="mi">259</span><span class="p">,</span> <span class="mi">266</span><span class="p">,</span> <span class="mi">272</span><span class="p">,</span> <span class="mi">279</span><span class="p">,</span> <span class="mi">286</span><span class="p">,</span> <span class="mi">293</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">307</span><span class="p">,</span> <span class="mi">315</span><span class="p">,</span>
+        <span class="mi">323</span><span class="p">,</span> <span class="mi">331</span><span class="p">,</span> <span class="mi">338</span><span class="p">,</span> <span class="mi">347</span><span class="p">,</span> <span class="mi">355</span><span class="p">,</span> <span class="mi">365</span><span class="p">,</span> <span class="mi">373</span><span class="p">,</span> <span class="mi">382</span><span class="p">,</span> <span class="mi">392</span><span class="p">,</span> <span class="mi">401</span><span class="p">,</span> <span class="mi">411</span><span class="p">,</span> <span class="mi">421</span><span class="p">,</span> <span class="mi">432</span><span class="p">,</span>
+        <span class="mi">442</span><span class="p">,</span> <span class="mi">453</span><span class="p">,</span> <span class="mi">464</span><span class="p">,</span> <span class="mi">475</span><span class="p">,</span> <span class="mi">487</span><span class="p">,</span> <span class="mi">499</span><span class="p">]</span>
+
+
+<span class="c1"># fmt: on</span>
+
+
+<div class="viewcode-block" id="Cosmology">
+<a class="viewcode-back" href="../../../reading/simulations/#haccytrees.simulations.Cosmology">[docs]</a>
+<span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Cosmology</span><span class="p">:</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">Omega_m</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">Omega_b</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">Omega_L</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">h</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">ns</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">s8</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">w0</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+    <span class="n">wa</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="n">cosmologies</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Cosmology</span><span class="o">.</span><span class="n">cosmologies</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Cosmology(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hubble_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hubble time in Gyr (1/H0)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="p">)</span> <span class="o">*</span> <span class="n">_km_in_Mpc</span> <span class="o">/</span> <span class="n">_sec_in_year</span> <span class="o">*</span> <span class="mf">1e-9</span>
+
+    <span class="c1"># from Linder 2003 et al. (removed curvature)</span>
+<div class="viewcode-block" id="Cosmology.hubble_parameter">
+<a class="viewcode-back" href="../../../reading/simulations/#haccytrees.simulations.Cosmology.hubble_parameter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">hubble_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;redshift dependend Hubble parameter, H(a)&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span> <span class="o">==</span> <span class="o">-</span><span class="mf">1.0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">wa</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">w_term</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w_term</span> <span class="o">=</span> <span class="n">a</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">wa</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">3.</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">wa</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="mi">100</span>
+            <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span>
+            <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Omega_m</span> <span class="o">*</span> <span class="n">a</span><span class="o">**-</span><span class="mi">3</span>
+                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Omega_L</span> <span class="o">*</span> <span class="n">w_term</span>
+                <span class="p">)</span>
+        <span class="p">)</span> </div>
+
+
+
+<div class="viewcode-block" id="Cosmology.lookback_time">
+<a class="viewcode-back" href="../../../reading/simulations/#haccytrees.simulations.Cosmology.lookback_time">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">lookback_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lookback time in Gyr from a=1&quot;&quot;&quot;</span>
+        <span class="c1"># Integrate 1/(a&#39;*H(a&#39;)) da&#39; from a to 1</span>
+        <span class="c1"># TODO: add radiation / neutrinos</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span> <span class="o">==</span> <span class="o">-</span><span class="mf">1.0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">wa</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">w_term</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w_term</span> <span class="o">=</span> <span class="n">a</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">wa</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">3.</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">wa</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">))</span>
+        <span class="n">integrand</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">:</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Omega_m</span> <span class="o">/</span> <span class="n">a</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Omega_L</span> <span class="o">*</span> <span class="n">a</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">w_term</span>
+        <span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">da</span> <span class="o">=</span> <span class="mf">1e-3</span>
+        <span class="n">_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="n">da</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hubble_time</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="n">integrand</span><span class="p">(</span><span class="n">_a</span><span class="p">),</span> <span class="n">_a</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Cosmology.virial_overdensity">
+<a class="viewcode-back" href="../../../reading/simulations/#haccytrees.simulations.Cosmology.virial_overdensity">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">virial_overdensity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Bryan &amp; Norman Delta_vir&quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_Omega_m</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="mi">18</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">82</span> <span class="o">*</span> <span class="n">x</span> <span class="o">-</span> <span class="mi">39</span> <span class="o">*</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">func_E2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span> <span class="o">==</span> <span class="o">-</span><span class="mf">1.0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">wa</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">w_term</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">w_term</span> <span class="o">=</span> <span class="n">a</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">wa</span><span class="p">))</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">3.</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">wa</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">a</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Omega_m</span> <span class="o">*</span> <span class="n">a</span><span class="o">**-</span><span class="mi">3</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Omega_L</span> <span class="o">*</span> <span class="n">w_term</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">func_Omega_m</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Omega_m</span> <span class="o">*</span> <span class="n">a</span><span class="o">**-</span><span class="mi">3</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">func_E2</span><span class="p">(</span><span class="n">a</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Simulation">
+<a class="viewcode-back" href="../../../reading/simulations/#haccytrees.simulations.Simulation">[docs]</a>
+<span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Simulation</span><span class="p">:</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">nsteps</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">zstart</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">zfin</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">rl</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">ng</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">np</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">cosmo</span><span class="p">:</span> <span class="n">Cosmology</span>
+    <span class="n">cosmotools_steps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">fullalive_steps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+
+    <span class="n">simulations</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Simulation</span><span class="o">.</span><span class="n">simulations</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Simulation(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: RL=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">rl</span><span class="si">}</span><span class="s2"> NP=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">np</span><span class="si">}</span><span class="s2">, NG=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ng</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step2a</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="n">aini</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zstart</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">afin</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zfin</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">aini</span> <span class="o">+</span> <span class="p">(</span><span class="n">afin</span> <span class="o">-</span> <span class="n">aini</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">*</span> <span class="p">(</span><span class="n">step</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step2z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">step2a</span><span class="p">(</span><span class="n">step</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">step2lookback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step2a</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cosmo</span><span class="o">.</span><span class="n">lookback_time</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">particle_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_rhoc</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cosmo</span><span class="o">.</span><span class="n">Omega_m</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rl</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">np</span><span class="p">)</span> <span class="o">**</span> <span class="mi">3</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Simulation&quot;</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+        <span class="n">cosmology_name</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cosmology&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">)</span>
+        <span class="n">cosmology</span> <span class="o">=</span> <span class="n">Cosmology</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">cosmology_name</span><span class="p">,</span>
+            <span class="n">Omega_m</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cosmology&quot;</span><span class="p">,</span> <span class="s2">&quot;Omega_m&quot;</span><span class="p">)),</span>
+            <span class="n">Omega_b</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cosmology&quot;</span><span class="p">,</span> <span class="s2">&quot;Omega_b&quot;</span><span class="p">)),</span>
+            <span class="n">Omega_L</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cosmology&quot;</span><span class="p">,</span> <span class="s2">&quot;Omega_L&quot;</span><span class="p">)),</span>
+            <span class="n">h</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cosmology&quot;</span><span class="p">,</span> <span class="s2">&quot;h&quot;</span><span class="p">)),</span>
+            <span class="n">ns</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cosmology&quot;</span><span class="p">,</span> <span class="s2">&quot;ns&quot;</span><span class="p">)),</span>
+            <span class="n">s8</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cosmology&quot;</span><span class="p">,</span> <span class="s2">&quot;s8&quot;</span><span class="p">)),</span>
+        <span class="p">)</span>
+
+        <span class="n">simulation_name</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;simulation&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">)</span>
+        <span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">simulation_name</span><span class="p">,</span>
+            <span class="n">cosmo</span><span class="o">=</span><span class="n">cosmology</span><span class="p">,</span>
+            <span class="n">rl</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;simulation&quot;</span><span class="p">,</span> <span class="s2">&quot;rl&quot;</span><span class="p">)),</span>
+            <span class="n">ng</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;simulation&quot;</span><span class="p">,</span> <span class="s2">&quot;ng&quot;</span><span class="p">)),</span>
+            <span class="n">np</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;simulation&quot;</span><span class="p">,</span> <span class="s2">&quot;np&quot;</span><span class="p">)),</span>
+            <span class="n">nsteps</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;simulation&quot;</span><span class="p">,</span> <span class="s2">&quot;nsteps&quot;</span><span class="p">)),</span>
+            <span class="n">zstart</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;simulation&quot;</span><span class="p">,</span> <span class="s2">&quot;zstart&quot;</span><span class="p">)),</span>
+            <span class="n">zfin</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;simulation&quot;</span><span class="p">,</span> <span class="s2">&quot;zfin&quot;</span><span class="p">)),</span>
+            <span class="n">cosmotools_steps</span><span class="o">=</span><span class="p">[</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;simulation&quot;</span><span class="p">,</span> <span class="s2">&quot;cosmotools_steps&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="p">],</span>
+            <span class="n">fullalive_steps</span><span class="o">=</span><span class="p">[],</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">simulation</span></div>
+
+
+
+<span class="c1"># Cosmological parameters used for OuterRim</span>
+<span class="n">OuterRimCosmo</span> <span class="o">=</span> <span class="n">Cosmology</span><span class="p">(</span>
+    <span class="s2">&quot;OuterRimCosmo&quot;</span><span class="p">,</span>
+    <span class="n">Omega_m</span><span class="o">=</span><span class="mf">0.22</span> <span class="o">+</span> <span class="mf">0.02258</span> <span class="o">/</span> <span class="mf">0.71</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">Omega_b</span><span class="o">=</span><span class="mf">0.02258</span> <span class="o">/</span> <span class="mf">0.71</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">Omega_L</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.22</span> <span class="o">-</span> <span class="mf">0.02258</span> <span class="o">/</span> <span class="mf">0.71</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">h</span><span class="o">=</span><span class="mf">0.71</span><span class="p">,</span>
+    <span class="n">ns</span><span class="o">=</span><span class="mf">0.963</span><span class="p">,</span>
+    <span class="n">s8</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="c1"># Cosmological parameters used for LJ</span>
+<span class="n">LastJourneyCosmo</span> <span class="o">=</span> <span class="n">Cosmology</span><span class="p">(</span>
+    <span class="s2">&quot;LastJourneyCosmo&quot;</span><span class="p">,</span>
+    <span class="n">Omega_m</span><span class="o">=</span><span class="mf">0.26067</span> <span class="o">+</span> <span class="mf">0.02242</span> <span class="o">/</span> <span class="mf">0.6766</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">Omega_b</span><span class="o">=</span><span class="mf">0.02242</span> <span class="o">/</span> <span class="mf">0.6766</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">Omega_L</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.26067</span> <span class="o">-</span> <span class="mf">0.02242</span> <span class="o">/</span> <span class="mf">0.6766</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">h</span><span class="o">=</span><span class="mf">0.6766</span><span class="p">,</span>
+    <span class="n">ns</span><span class="o">=</span><span class="mf">0.9665</span><span class="p">,</span>
+    <span class="n">s8</span><span class="o">=</span><span class="mf">0.8102</span><span class="p">,</span>
+    <span class="n">w0</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">wa</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">DiscoveryW0WACosmo</span> <span class="o">=</span> <span class="n">Cosmology</span><span class="p">(</span>
+    <span class="s2">&quot;DiscoveryW0WACosmo&quot;</span><span class="p">,</span>
+    <span class="n">Omega_m</span><span class="o">=</span><span class="mf">0.2903</span> <span class="o">+</span> <span class="mf">0.0224</span> <span class="o">/</span> <span class="mf">0.6466</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">Omega_b</span><span class="o">=</span><span class="mf">0.0224</span> <span class="o">/</span> <span class="mf">0.6466</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">Omega_L</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.2903</span> <span class="o">-</span> <span class="mf">0.0224</span> <span class="o">/</span> <span class="mf">0.6466</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">h</span><span class="o">=</span><span class="mf">0.6466</span><span class="p">,</span>
+    <span class="n">ns</span><span class="o">=</span><span class="mf">0.965</span><span class="p">,</span>
+    <span class="n">s8</span><span class="o">=</span><span class="mf">0.7917</span><span class="p">,</span>
+    <span class="n">w0</span><span class="o">=-</span><span class="mf">0.45</span><span class="p">,</span>
+    <span class="n">wa</span><span class="o">=-</span><span class="mf">1.79</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">DiscoveryLCDMCosmo</span> <span class="o">=</span> <span class="n">Cosmology</span><span class="p">(</span>
+    <span class="s2">&quot;DiscoveryLCDMCosmo&quot;</span><span class="p">,</span>
+    <span class="n">Omega_m</span><span class="o">=</span><span class="mf">0.2582</span> <span class="o">+</span> <span class="mf">0.0225</span> <span class="o">/</span> <span class="mf">0.6797</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">Omega_b</span><span class="o">=</span><span class="mf">0.0225</span> <span class="o">/</span> <span class="mf">0.6797</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">Omega_L</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.2582</span> <span class="o">-</span> <span class="mf">0.0225</span> <span class="o">/</span> <span class="mf">0.6797</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">h</span><span class="o">=</span><span class="mf">0.6797</span><span class="p">,</span>
+    <span class="n">ns</span><span class="o">=</span><span class="mf">0.968</span><span class="p">,</span>
+    <span class="n">s8</span><span class="o">=</span><span class="mf">0.8135</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">AlphaQ</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;AlphaQ&quot;</span><span class="p">,</span>
+    <span class="n">cosmo</span><span class="o">=</span><span class="n">OuterRimCosmo</span><span class="p">,</span>
+    <span class="n">rl</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+    <span class="n">ng</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="n">nsteps</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">zstart</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+    <span class="n">zfin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">cosmotools_steps</span><span class="o">=</span><span class="n">_alphaq_analysis_steps</span><span class="p">,</span>
+    <span class="n">fullalive_steps</span><span class="o">=</span><span class="n">_ljfp_analysis_steps</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="n">OuterRim</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;OuterRim&quot;</span><span class="p">,</span>
+    <span class="n">cosmo</span><span class="o">=</span><span class="n">OuterRimCosmo</span><span class="p">,</span>
+    <span class="n">rl</span><span class="o">=</span><span class="mf">3000.0</span><span class="p">,</span>
+    <span class="n">ng</span><span class="o">=</span><span class="mi">10240</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">=</span><span class="mi">10240</span><span class="p">,</span>
+    <span class="n">nsteps</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">zstart</span><span class="o">=</span><span class="mf">200.0</span><span class="p">,</span>
+    <span class="n">zfin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">cosmotools_steps</span><span class="o">=</span><span class="n">_outerrim_analysis_steps</span><span class="p">,</span>
+    <span class="n">fullalive_steps</span><span class="o">=</span><span class="n">_outerrim_analysis_steps</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="n">LastJourney</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;LastJourney&quot;</span><span class="p">,</span>
+    <span class="n">cosmo</span><span class="o">=</span><span class="n">LastJourneyCosmo</span><span class="p">,</span>
+    <span class="n">rl</span><span class="o">=</span><span class="mi">3400</span><span class="p">,</span>
+    <span class="n">ng</span><span class="o">=</span><span class="mi">10752</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">=</span><span class="mi">10752</span><span class="p">,</span>
+    <span class="n">nsteps</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">zstart</span><span class="o">=</span><span class="mf">200.0</span><span class="p">,</span>
+    <span class="n">zfin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">cosmotools_steps</span><span class="o">=</span><span class="n">_ljfp_analysis_steps</span><span class="p">,</span>
+    <span class="n">fullalive_steps</span><span class="o">=</span><span class="n">_ljfp_analysis_steps</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">LastJourneySV</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+    <span class="n">LastJourney</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;LastJourneySV&quot;</span><span class="p">,</span> <span class="n">rl</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">ng</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">np</span><span class="o">=</span><span class="mi">1024</span>
+<span class="p">)</span>
+
+<span class="n">Farpoint</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Farpoint&quot;</span><span class="p">,</span>
+    <span class="n">cosmo</span><span class="o">=</span><span class="n">LastJourneyCosmo</span><span class="p">,</span>
+    <span class="n">rl</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+    <span class="n">ng</span><span class="o">=</span><span class="mi">12288</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">=</span><span class="mi">12288</span><span class="p">,</span>
+    <span class="n">nsteps</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">zstart</span><span class="o">=</span><span class="mf">200.0</span><span class="p">,</span>
+    <span class="n">zfin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">cosmotools_steps</span><span class="o">=</span><span class="n">_ljfp_analysis_steps</span><span class="p">,</span>
+    <span class="n">fullalive_steps</span><span class="o">=</span><span class="n">_ljfp_analysis_steps</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="n">FarpointSV</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+    <span class="n">Farpoint</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;FarpointSV&quot;</span><span class="p">,</span>
+    <span class="n">rl</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+    <span class="n">ng</span><span class="o">=</span><span class="mi">3072</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">=</span><span class="mi">3072</span><span class="p">,</span>
+    <span class="n">cosmotools_steps</span><span class="o">=</span><span class="n">_ljfp_analysis_steps</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+<span class="p">)</span>
+
+<span class="n">BorgCube</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;BorgCube&quot;</span><span class="p">,</span>
+    <span class="n">cosmo</span><span class="o">=</span><span class="n">OuterRimCosmo</span><span class="p">,</span>
+    <span class="n">rl</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+    <span class="n">ng</span><span class="o">=</span><span class="mi">2304</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">=</span><span class="mi">2304</span><span class="p">,</span>
+    <span class="n">nsteps</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">zstart</span><span class="o">=</span><span class="mf">200.0</span><span class="p">,</span>
+    <span class="n">zfin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">cosmotools_steps</span><span class="o">=</span><span class="n">_borgcube_analysis_steps</span><span class="p">,</span>
+    <span class="n">fullalive_steps</span><span class="o">=</span><span class="n">_ljfp_analysis_steps</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">DiscoveryLCDM</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;DiscoveryLCDM&quot;</span><span class="p">,</span>
+    <span class="n">cosmo</span><span class="o">=</span><span class="n">DiscoveryLCDMCosmo</span><span class="p">,</span>
+    <span class="n">rl</span><span class="o">=</span><span class="mf">1019.55</span><span class="p">,</span>
+    <span class="n">ng</span><span class="o">=</span><span class="mi">6720</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">=</span><span class="mi">6720</span><span class="p">,</span>
+    <span class="n">nsteps</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">zstart</span><span class="o">=</span><span class="mf">200.0</span><span class="p">,</span>
+    <span class="n">zfin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">cosmotools_steps</span><span class="o">=</span><span class="n">_discovery_analysis_steps</span><span class="p">,</span>
+    <span class="n">fullalive_steps</span><span class="o">=</span><span class="n">_discovery_analysis_steps</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">DiscoveryW0WA</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;DiscoveryW0WA&quot;</span><span class="p">,</span>
+    <span class="n">cosmo</span><span class="o">=</span><span class="n">DiscoveryW0WACosmo</span><span class="p">,</span>
+    <span class="n">rl</span><span class="o">=</span><span class="mf">969.9</span><span class="p">,</span>
+    <span class="n">ng</span><span class="o">=</span><span class="mi">6720</span><span class="p">,</span>
+    <span class="n">np</span><span class="o">=</span><span class="mi">6720</span><span class="p">,</span>
+    <span class="n">nsteps</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+    <span class="n">zstart</span><span class="o">=</span><span class="mf">200.0</span><span class="p">,</span>
+    <span class="n">zfin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">cosmotools_steps</span><span class="o">=</span><span class="n">_discovery_analysis_steps</span><span class="p">,</span>
+    <span class="n">fullalive_steps</span><span class="o">=</span><span class="n">_discovery_analysis_steps</span><span class="p">,</span>
+<span class="p">)</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Michael Buehlmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

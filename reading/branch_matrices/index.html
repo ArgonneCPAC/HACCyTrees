@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Creating Branch-Matrices &mdash; haccytrees  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=26d47c55" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=187304be"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex/" />
+    <link rel="search" title="Search" href="../../search/" />
+    <link rel="next" title="Visualization" href="../visualization/" />
+    <link rel="prev" title="Subhalo Mass Model" href="../subhalo_model/" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../" class="icon icon-home">
+            haccytrees
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../">HaccyTrees Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Merger Forests</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../layout/">Merger Forest Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fragments/">Dealing with Fragments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../subhalo_model/">Subhalo Mass Model</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Creating Branch-Matrices</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#haccytrees.mergertrees.forest2matrix"><code class="docutils literal notranslate"><span class="pre">forest2matrix()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization/">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../simulations/">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../creating/">Creating Merger Forests</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extra utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utils/temporary_storage/">Temporary Storage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../">haccytrees</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Creating Branch-Matrices</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/reading/branch_matrices.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="creating-branch-matrices">
+<h1>Creating Branch-Matrices<a class="headerlink" href="#creating-branch-matrices" title="Link to this heading"></a></h1>
+<figure class="align-default" id="id1">
+<img alt="../../_images/branchmatrix_mass.svg" src="../../_images/branchmatrix_mass.svg" />
+<figcaption>
+<p><span class="caption-text">Example of a branch matrix for a single tree, showing the branch mass. Each
+row corresponds to the main progenitor branch of a branch, and each column to
+a simulation snapshot. After a halo merges, the mass by default is set to <code class="docutils literal notranslate"><span class="pre">0</span></code>
+(white).</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="haccytrees.mergertrees.forest2matrix">
+<span class="sig-prename descclassname"><span class="pre">haccytrees.mergertrees.</span></span><span class="sig-name descname"><span class="pre">forest2matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subhalo_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branchmass_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/mergertrees/forest_matrix/#forest2matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.mergertrees.forest2matrix" title="Link to this definition"></a></dt>
+<dd><p>Convert a haccytree forest to a matrix, where each row is a branch</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>forest</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>ndarray</em><em>]</em>) – the full treenode forest returned by <a class="reference internal" href="../getting_started/#haccytrees.mergertrees.read_forest" title="haccytrees.mergertrees.read_forest"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forest()</span></code></a></p></li>
+<li><p><strong>simulation</strong> (<em>str</em><em> | </em><a class="reference internal" href="../simulations/#haccytrees.simulations.Simulation" title="haccytrees.simulations.Simulation"><em>Simulation</em></a>) – the full progenitor array created by <a class="reference internal" href="../getting_started/#haccytrees.mergertrees.read_forest" title="haccytrees.mergertrees.read_forest"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_forest()</span></code></a></p></li>
+<li><p><strong>target_index</strong> (<em>int</em><em> | </em><em>None</em>) – (optional) if set, a matrix of only the tree starting at <cite>target_index</cite> will be
+calculated</p></li>
+<li><p><strong>subhalo_data</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>ndarray</em><em>] </em><em>| </em><em>None</em>) – currently does nothing</p></li>
+<li><p><strong>branchmass_threshold</strong> (<em>float</em><em> | </em><em>None</em>) – if set, removes all branches that have a mass below the threshold at infall</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>matrices</strong> – arrays of shape <cite>(nbranches, nsnapshots)</cite> for each of the forest properties.
+Additionally, <cite>matrices[“top_host_row”]</cite> contains the row number of the main
+host, <cite>matrices[“direct_host_row”]</cite> contains the row of the direct host in
+the hierarchy, and <cite>matrices[“parent_tni”] contains the `tree_node_index</cite> of the
+main (top) host halo. <cite>top_host_row</cite> and <cite>direct_host_row</cite> are <cite>-1</cite> for host
+halos. <cite>parent_tni</cite> of a host halo is its own <cite>tree_node_index</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping[str, np.ndarray]</p>
+</dd>
+</dl>
+<div class="admonition-notes admonition">
+<p class="admonition-title">Notes</p>
+<p>All the properties (except <cite>top_host_row</cite>, <cite>direct_host_row</cite>, <cite>parent_tni</cite>) are 0
+for entries where the halo does not exist or when the halo is a subhalo. For
+<cite>top_host_row</cite>, <cite>direct_host_row</cite>, and <cite>parent_tni</cite>, the values are <cite>-1</cite> prior to
+the nucleation of the branch.</p>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Michael Buehlmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

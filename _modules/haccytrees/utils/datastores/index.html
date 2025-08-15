@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>haccytrees.utils.datastores &mdash; haccytrees  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/custom.css?v=26d47c55" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=187304be"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex/" />
+    <link rel="search" title="Search" href="../../../../search/" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../" class="icon icon-home">
+            haccytrees
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../">HaccyTrees Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/layout/">Merger Forest Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/getting_started/">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/fragments/">Dealing with Fragments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/subhalo_model/">Subhalo Mass Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/branch_matrices/">Creating Branch-Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/visualization/">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/simulations/">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/examples/">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../creating/">Creating Merger Forests</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extra utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils/temporary_storage/">Temporary Storage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../">haccytrees</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../">Module code</a></li>
+      <li class="breadcrumb-item active">haccytrees.utils.datastores</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for haccytrees.utils.datastores</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pygio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpipartition</span><span class="w"> </span><span class="kn">import</span> <span class="n">Partition</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.timer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Timer</span>
+
+
+<div class="viewcode-block" id="GenericIOStore">
+<a class="viewcode-back" href="../../../../utils/temporary_storage/#haccytrees.utils.datastores.GenericIOStore">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GenericIOStore</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A temporary storage that uses GenericIO to save data</span>
+
+<span class="sd">    The data has to be a Structure-of-Arrays (SoA) (i.e. a python dictionary</span>
+<span class="sd">    `str`-&gt;`np.ndarray`), with each array having the same length.</span>
+
+<span class="sd">    This class behaves like a python dictionary of `SoA`s. If `temporary_path`</span>
+<span class="sd">    is set, the arrays associated to a key will be stored in GenericIO files,</span>
+<span class="sd">    otherwise, they will be kept in memory.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    partition : :class:`mpipartition.Partition`</span>
+<span class="sd">        A Partition instance defining the MPI layout</span>
+
+<span class="sd">    box_size : float</span>
+<span class="sd">        the physical size of the volume</span>
+
+<span class="sd">    temporary_path : str</span>
+<span class="sd">        The base filesystem path where temporary data is stored. If `None`, the</span>
+<span class="sd">        data will be kept in memory.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    &gt;&gt;&gt; # Creating a partition</span>
+<span class="sd">    &gt;&gt;&gt; partition = mpipartition.Partition()</span>
+<span class="sd">    &gt;&gt;&gt; # Creating a store</span>
+<span class="sd">    &gt;&gt;&gt; store = GenericIOStore(partition, 1.0, &#39;./tmp&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; data = {x: np.random.uniform(10) for x in &#39;xyz&#39;}</span>
+<span class="sd">    &gt;&gt;&gt; store[&#39;pos_0&#39;] = data</span>
+<span class="sd">    &gt;&gt;&gt; del data</span>
+<span class="sd">    &gt;&gt;&gt; # Do some memory-expensive stuff until you need the data again...</span>
+<span class="sd">    &gt;&gt;&gt; data_0 = store[&#39;pos_0&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; # Cleanup</span>
+<span class="sd">    &gt;&gt;&gt; store.remove(&#39;pos_0&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">partition</span><span class="p">:</span> <span class="n">Partition</span><span class="p">,</span> <span class="n">box_size</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">temporary_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span> <span class="o">=</span> <span class="n">temporary_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_partition</span> <span class="o">=</span> <span class="n">partition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">box_size</span> <span class="o">=</span> <span class="n">box_size</span>
+
+<div class="viewcode-block" id="GenericIOStore.__setitem__">
+<a class="viewcode-back" href="../../../../utils/temporary_storage/#haccytrees.utils.datastores.GenericIOStore.__setitem__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adding an SoA to the storage</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key</span>
+<span class="sd">            The storage key, will be appended to the `temporary_path` and</span>
+<span class="sd">            therefore has to be a valid if used in a filesystem path.</span>
+<span class="sd">        data</span>
+<span class="sd">            The SoA to be added to the store. A dictionary with types</span>
+<span class="sd">            `{str: np.ndarray}`, where the numpy array have to have the same shape</span>
+<span class="sd">            and `dim=1`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">Timer</span><span class="p">(</span><span class="s2">&quot;temp storage: writing (GIO)&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">pygio</span><span class="o">.</span><span class="n">write_genericio</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">.tmp.gio&quot;</span><span class="p">,</span>
+                    <span class="n">data</span><span class="p">,</span>
+                    <span class="n">phys_origin</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                    <span class="n">phys_scale</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">box_size</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GenericIOStore.__getitem__">
+<a class="viewcode-back" href="../../../../utils/temporary_storage/#haccytrees.utils.datastores.GenericIOStore.__getitem__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve a Structure-of-Arrays from the store</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key</span>
+<span class="sd">            The storage key of the SoA</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Mapping[str, np.ndarray]</span>
+<span class="sd">            The SoA associated with the key. A python dictionary of type `{str: np.ndarray}`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">Timer</span><span class="p">(</span><span class="s2">&quot;temp storage: reading (GIO)&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">pygio</span><span class="o">.</span><span class="n">read_genericio</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">.tmp.gio&quot;</span><span class="p">,</span>
+                    <span class="n">redistribute</span><span class="o">=</span><span class="n">pygio</span><span class="o">.</span><span class="n">PyGenericIO</span><span class="o">.</span><span class="n">MismatchBehavior</span><span class="o">.</span><span class="n">MismatchDisallowed</span><span class="p">,</span>
+                <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GenericIOStore.get_field">
+<a class="viewcode-back" href="../../../../utils/temporary_storage/#haccytrees.utils.datastores.GenericIOStore.get_field">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">field</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve specific arrays in a Structure-of-Arrays from the store</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key</span>
+<span class="sd">            The storage key of the SoA</span>
+<span class="sd">        field</span>
+<span class="sd">            The keys of the specific arrays that are to be returned. Can be a `str`</span>
+<span class="sd">            or a `list` of `str`.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Mapping[str, np.ndarray]</span>
+<span class="sd">            The SoA associated with the key, with only the fields specified.</span>
+<span class="sd">            A python dictionary of type `{str: np.ndarray}`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">field</span> <span class="o">=</span> <span class="p">[</span><span class="n">field</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">f</span><span class="p">]</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">field</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">Timer</span><span class="p">(</span><span class="s2">&quot;temp storage: reading (GIO)&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">pygio</span><span class="o">.</span><span class="n">read_genericio</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">.tmp.gio&quot;</span><span class="p">,</span>
+                    <span class="n">field</span><span class="p">,</span>
+                    <span class="n">redistribute</span><span class="o">=</span><span class="n">pygio</span><span class="o">.</span><span class="n">PyGenericIO</span><span class="o">.</span><span class="n">MismatchBehavior</span><span class="o">.</span><span class="n">MismatchDisallowed</span><span class="p">,</span>
+                <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GenericIOStore.remove">
+<a class="viewcode-back" href="../../../../utils/temporary_storage/#haccytrees.utils.datastores.GenericIOStore.remove">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete a stored SoA (from memory or disk)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key</span>
+<span class="sd">            The storage key of the SoA</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_partition</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span>
+            <span class="k">with</span> <span class="n">Timer</span><span class="p">(</span><span class="s2">&quot;temp storage: cleanup (GIO)&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_partition</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">.tmp.gio*&quot;</span><span class="p">):</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_partition</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="GenericIOStore.pop">
+<a class="viewcode-back" href="../../../../utils/temporary_storage/#haccytrees.utils.datastores.GenericIOStore.pop">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve a Structure-of-Arrays from the store and remove the SoA</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key</span>
+<span class="sd">            The storage key of the SoA</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Mapping[str, np.ndarray]</span>
+<span class="sd">            The SoA associated with the key. A python dictionary of type `{str: np.ndarray}`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">d</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NumpyStore">
+<a class="viewcode-back" href="../../../../utils/temporary_storage/#haccytrees.utils.datastores.NumpyStore">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NumpyStore</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A temporary storage that uses numpy.savez to save data</span>
+
+<span class="sd">    The data has to be a dictionary of arrays (i.e. `str`-&gt;`np.ndarray`),</span>
+<span class="sd">    arrays can have variable lengths and dimensions. If `temporary_path`</span>
+<span class="sd">    is set, the arrays associated to a key will be stored in `.npz` files (one</span>
+<span class="sd">    per MPI rank), otherwise, they will be kept in memory.</span>
+
+<span class="sd">    :param partition: A Partition instance defining the MPI layout</span>
+<span class="sd">    :type partition: :class:`mpipartition.Partition`</span>
+
+<span class="sd">    :param temporary_path: The base filesystem path where temporary data is</span>
+<span class="sd">        stored. If `None`, the data will be kept in memory.</span>
+<span class="sd">    :type temporary_path: `Optional[str]`</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    &gt;&gt;&gt; # Creating a partition</span>
+<span class="sd">    &gt;&gt;&gt; partition = mpipartition.Partition()</span>
+<span class="sd">    &gt;&gt;&gt; # Creating a store</span>
+<span class="sd">    &gt;&gt;&gt; store = NumpyStore(partition, &#39;./tmp&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; data = {x: np.random.uniform(10) for x in &#39;xyz&#39;}</span>
+<span class="sd">    &gt;&gt;&gt; store[&#39;pos_0&#39;] = data</span>
+<span class="sd">    &gt;&gt;&gt; # Do some memory-expensive stuff until you need the data again...</span>
+<span class="sd">    &gt;&gt;&gt; data_0 = store[&#39;pos_0&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; # Cleanup</span>
+<span class="sd">    &gt;&gt;&gt; store.remove(&#39;pos_0&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">partition</span><span class="p">:</span> <span class="n">Partition</span><span class="p">,</span> <span class="n">temporary_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span> <span class="o">=</span> <span class="n">temporary_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_partition</span> <span class="o">=</span> <span class="n">partition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filename_fct</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">key</span><span class="p">:</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">.tmp.rank-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_partition</span><span class="o">.</span><span class="n">rank</span><span class="si">}</span><span class="s2">.npz&quot;</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="NumpyStore.__setitem__">
+<a class="viewcode-back" href="../../../../utils/temporary_storage/#haccytrees.utils.datastores.NumpyStore.__setitem__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adding a dictionary of arrays to the storage</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            The storage key, will be appended to the `temporary_path` and</span>
+<span class="sd">            therefore has to be a valid if used in a filesystem path.</span>
+<span class="sd">        data : Mapping[str, np.ndarray]</span>
+<span class="sd">            The data to be added to the store. A dictionary with types</span>
+<span class="sd">            `{str: np.ndarray}`, where the numpy array can have variable shape</span>
+<span class="sd">            and dimensions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">Timer</span><span class="p">(</span><span class="s2">&quot;temp storage: writing (NPY)&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename_fct</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="o">**</span><span class="n">data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NumpyStore.__getitem__">
+<a class="viewcode-back" href="../../../../utils/temporary_storage/#haccytrees.utils.datastores.NumpyStore.__getitem__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve a dictionary of arrays from the store</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key</span>
+<span class="sd">            The storage key</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Mapping[str, np.ndarray]</span>
+<span class="sd">            The data associated with the key. A python dictionary of type `{str: np.ndarray}`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">Timer</span><span class="p">(</span><span class="s2">&quot;temp storage: reading (NPY)&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename_fct</span><span class="p">(</span><span class="n">key</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="NumpyStore.remove">
+<a class="viewcode-back" href="../../../../utils/temporary_storage/#haccytrees.utils.datastores.NumpyStore.remove">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete stored data associated with key (from memory or disk)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key</span>
+<span class="sd">            The storage key of the data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">Timer</span><span class="p">(</span><span class="s2">&quot;temp storage: cleanup (NPY)&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename_fct</span><span class="p">(</span><span class="n">key</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="NumpyStore.pop">
+<a class="viewcode-back" href="../../../../utils/temporary_storage/#haccytrees.utils.datastores.NumpyStore.pop">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve stored data and remove from storage (memory or disk)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key</span>
+<span class="sd">            The storage key of the data</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Mapping[str, np.ndarray]</span>
+<span class="sd">            The data associated with the key. A python dictionary of type `{str: np.ndarray}`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temporary_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">d</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Michael Buehlmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

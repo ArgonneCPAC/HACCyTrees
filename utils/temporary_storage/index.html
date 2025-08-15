@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Temporary Storage &mdash; haccytrees  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=26d47c55" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=187304be"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex/" />
+    <link rel="search" title="Search" href="../../search/" />
+    <link rel="prev" title="Creating Merger Forests" href="../../creating/" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../" class="icon icon-home">
+            haccytrees
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../">HaccyTrees Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../reading/layout/">Merger Forest Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reading/getting_started/">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reading/fragments/">Dealing with Fragments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reading/subhalo_model/">Subhalo Mass Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reading/branch_matrices/">Creating Branch-Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reading/visualization/">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reading/simulations/">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reading/examples/">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../creating/">Creating Merger Forests</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extra utilities</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Temporary Storage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#genericiostore">GenericIOStore</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#haccytrees.utils.datastores.GenericIOStore"><code class="docutils literal notranslate"><span class="pre">GenericIOStore</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#numpystore">NumpyStore</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#haccytrees.utils.datastores.NumpyStore"><code class="docutils literal notranslate"><span class="pre">NumpyStore</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../">haccytrees</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Temporary Storage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/utils/temporary_storage.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="temporary-storage">
+<span id="id1"></span><h1>Temporary Storage<a class="headerlink" href="#temporary-storage" title="Link to this heading"></a></h1>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#haccytrees.utils.datastores.GenericIOStore" title="haccytrees.utils.datastores.GenericIOStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GenericIOStore</span></code></a></p></td>
+<td><p>A temporary storage that uses GenericIO to save data</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#haccytrees.utils.datastores.NumpyStore" title="haccytrees.utils.datastores.NumpyStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NumpyStore</span></code></a></p></td>
+<td><p>A temporary storage that uses numpy.savez to save data</p></td>
+</tr>
+</tbody>
+</table>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<section id="genericiostore">
+<h3>GenericIOStore<a class="headerlink" href="#genericiostore" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="haccytrees.utils.datastores.GenericIOStore">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">haccytrees.utils.datastores.</span></span><span class="sig-name descname"><span class="pre">GenericIOStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">partition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">box_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temporary_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/utils/datastores/#GenericIOStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.utils.datastores.GenericIOStore" title="Link to this definition"></a></dt>
+<dd><p>A temporary storage that uses GenericIO to save data</p>
+<p>The data has to be a Structure-of-Arrays (SoA) (i.e. a python dictionary
+<cite>str</cite>-&gt;`np.ndarray`), with each array having the same length.</p>
+<p>This class behaves like a python dictionary of <cite>SoA`s. If `temporary_path</cite>
+is set, the arrays associated to a key will be stored in GenericIO files,
+otherwise, they will be kept in memory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>partition</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">mpipartition.Partition</span></code>) – A Partition instance defining the MPI layout</p></li>
+<li><p><strong>box_size</strong> (<em>float</em>) – the physical size of the volume</p></li>
+<li><p><strong>temporary_path</strong> (<em>str</em>) – The base filesystem path where temporary data is stored. If <cite>None</cite>, the
+data will be kept in memory.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition-examples admonition">
+<p class="admonition-title">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Creating a partition</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span> <span class="o">=</span> <span class="n">mpipartition</span><span class="o">.</span><span class="n">Partition</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Creating a store</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span> <span class="o">=</span> <span class="n">GenericIOStore</span><span class="p">(</span><span class="n">partition</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;./tmp&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="s1">&#39;xyz&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span><span class="p">[</span><span class="s1">&#39;pos_0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Do some memory-expensive stuff until you need the data again...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_0</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="s1">&#39;pos_0&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Cleanup</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;pos_0&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="haccytrees.utils.datastores.GenericIOStore.__getitem__">
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/utils/datastores/#GenericIOStore.__getitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.utils.datastores.GenericIOStore.__getitem__" title="Link to this definition"></a></dt>
+<dd><p>Retrieve a Structure-of-Arrays from the store</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – The storage key of the SoA</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The SoA associated with the key. A python dictionary of type <cite>{str: np.ndarray}</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping[str, np.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="haccytrees.utils.datastores.GenericIOStore.__setitem__">
+<span class="sig-name descname"><span class="pre">__setitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/utils/datastores/#GenericIOStore.__setitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.utils.datastores.GenericIOStore.__setitem__" title="Link to this definition"></a></dt>
+<dd><p>Adding an SoA to the storage</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – The storage key, will be appended to the <cite>temporary_path</cite> and
+therefore has to be a valid if used in a filesystem path.</p></li>
+<li><p><strong>data</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>ndarray</em><em>]</em>) – The SoA to be added to the store. A dictionary with types
+<cite>{str: np.ndarray}</cite>, where the numpy array have to have the same shape
+and <cite>dim=1</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="haccytrees.utils.datastores.GenericIOStore.get_field">
+<span class="sig-name descname"><span class="pre">get_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/utils/datastores/#GenericIOStore.get_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.utils.datastores.GenericIOStore.get_field" title="Link to this definition"></a></dt>
+<dd><p>Retrieve specific arrays in a Structure-of-Arrays from the store</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – The storage key of the SoA</p></li>
+<li><p><strong>field</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – The keys of the specific arrays that are to be returned. Can be a <cite>str</cite>
+or a <cite>list</cite> of <cite>str</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The SoA associated with the key, with only the fields specified.
+A python dictionary of type <cite>{str: np.ndarray}</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping[str, np.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="haccytrees.utils.datastores.GenericIOStore.pop">
+<span class="sig-name descname"><span class="pre">pop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/utils/datastores/#GenericIOStore.pop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.utils.datastores.GenericIOStore.pop" title="Link to this definition"></a></dt>
+<dd><p>Retrieve a Structure-of-Arrays from the store and remove the SoA</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – The storage key of the SoA</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The SoA associated with the key. A python dictionary of type <cite>{str: np.ndarray}</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping[str, np.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="haccytrees.utils.datastores.GenericIOStore.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/utils/datastores/#GenericIOStore.remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.utils.datastores.GenericIOStore.remove" title="Link to this definition"></a></dt>
+<dd><p>Delete a stored SoA (from memory or disk)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – The storage key of the SoA</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="numpystore">
+<h3>NumpyStore<a class="headerlink" href="#numpystore" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="haccytrees.utils.datastores.NumpyStore">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">haccytrees.utils.datastores.</span></span><span class="sig-name descname"><span class="pre">NumpyStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">partition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temporary_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/utils/datastores/#NumpyStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.utils.datastores.NumpyStore" title="Link to this definition"></a></dt>
+<dd><p>A temporary storage that uses numpy.savez to save data</p>
+<p>The data has to be a dictionary of arrays (i.e. <cite>str</cite>-&gt;`np.ndarray`),
+arrays can have variable lengths and dimensions. If <cite>temporary_path</cite>
+is set, the arrays associated to a key will be stored in <cite>.npz</cite> files (one
+per MPI rank), otherwise, they will be kept in memory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>partition</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">mpipartition.Partition</span></code>) – A Partition instance defining the MPI layout</p></li>
+<li><p><strong>temporary_path</strong> (<cite>Optional[str]</cite>) – The base filesystem path where temporary data is
+stored. If <cite>None</cite>, the data will be kept in memory.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition-examples admonition">
+<p class="admonition-title">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Creating a partition</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">partition</span> <span class="o">=</span> <span class="n">mpipartition</span><span class="o">.</span><span class="n">Partition</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Creating a store</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span> <span class="o">=</span> <span class="n">NumpyStore</span><span class="p">(</span><span class="n">partition</span><span class="p">,</span> <span class="s1">&#39;./tmp&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="s1">&#39;xyz&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span><span class="p">[</span><span class="s1">&#39;pos_0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Do some memory-expensive stuff until you need the data again...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_0</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="s1">&#39;pos_0&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Cleanup</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">store</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;pos_0&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="haccytrees.utils.datastores.NumpyStore.__getitem__">
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/utils/datastores/#NumpyStore.__getitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.utils.datastores.NumpyStore.__getitem__" title="Link to this definition"></a></dt>
+<dd><p>Retrieve a dictionary of arrays from the store</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – The storage key</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The data associated with the key. A python dictionary of type <cite>{str: np.ndarray}</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping[str, np.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="haccytrees.utils.datastores.NumpyStore.__setitem__">
+<span class="sig-name descname"><span class="pre">__setitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/utils/datastores/#NumpyStore.__setitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.utils.datastores.NumpyStore.__setitem__" title="Link to this definition"></a></dt>
+<dd><p>Adding a dictionary of arrays to the storage</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – The storage key, will be appended to the <cite>temporary_path</cite> and
+therefore has to be a valid if used in a filesystem path.</p></li>
+<li><p><strong>data</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>np.ndarray</em><em>]</em>) – The data to be added to the store. A dictionary with types
+<cite>{str: np.ndarray}</cite>, where the numpy array can have variable shape
+and dimensions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="haccytrees.utils.datastores.NumpyStore.pop">
+<span class="sig-name descname"><span class="pre">pop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/utils/datastores/#NumpyStore.pop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.utils.datastores.NumpyStore.pop" title="Link to this definition"></a></dt>
+<dd><p>Retrieve stored data and remove from storage (memory or disk)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – The storage key of the data</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The data associated with the key. A python dictionary of type <cite>{str: np.ndarray}</cite></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Mapping[str, np.ndarray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="haccytrees.utils.datastores.NumpyStore.remove">
+<span class="sig-name descname"><span class="pre">remove</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/haccytrees/utils/datastores/#NumpyStore.remove"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#haccytrees.utils.datastores.NumpyStore.remove" title="Link to this definition"></a></dt>
+<dd><p>Delete stored data associated with key (from memory or disk)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – The storage key of the data</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Michael Buehlmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

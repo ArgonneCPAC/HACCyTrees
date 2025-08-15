@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>haccytrees.mergertrees.forest_reader &mdash; haccytrees  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/custom.css?v=26d47c55" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=187304be"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex/" />
+    <link rel="search" title="Search" href="../../../../search/" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../" class="icon icon-home">
+            haccytrees
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search/" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../">HaccyTrees Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/layout/">Merger Forest Layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/getting_started/">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/fragments/">Dealing with Fragments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/subhalo_model/">Subhalo Mass Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/branch_matrices/">Creating Branch-Matrices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/visualization/">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/simulations/">Simulations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reading/examples/">Examples</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Creating Merger Forests</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../creating/">Creating Merger Forests</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Extra utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils/temporary_storage/">Temporary Storage</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../">haccytrees</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../">Module code</a></li>
+      <li class="breadcrumb-item active">haccytrees.mergertrees.forest_reader</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for haccytrees.mergertrees.forest_reader</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numba</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..simulations</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulation</span>
+
+<span class="c1"># These fields will always be loaded from the HDF5 files</span>
+<span class="n">_essential_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;tree_node_index&quot;</span><span class="p">,</span> <span class="s2">&quot;desc_node_index&quot;</span><span class="p">,</span> <span class="s2">&quot;snapnum&quot;</span><span class="p">,</span> <span class="s2">&quot;branch_size&quot;</span><span class="p">]</span>
+
+
+<span class="nd">@numba</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_desc_index</span><span class="p">(</span><span class="n">snapnum</span><span class="p">,</span> <span class="n">desc_node_index</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creating an array index for each halo, given by the data order</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    snapnum</span>
+<span class="sd">        the full &quot;snapnum&quot; data array of the merger forest</span>
+
+<span class="sd">    desc_node_index</span>
+<span class="sd">        the desc_node_index array of the merger forests, required since we have</span>
+<span class="sd">        some trees that are not rooted at z=0 (final snapshot), and therefore</span>
+<span class="sd">        we need to know when we start a new tree (desc_node_index==-1)</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The function keeps track of the current tree hierachy by the snap_roots</span>
+<span class="sd">    array, where each entry has the array index of the last halo at that</span>
+<span class="sd">    snapshot as we traverse a tree. The descendant index of a halo at index i is</span>
+<span class="sd">    then the value of ``snap_roots[snapnum[i] + 1]``</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapnum</span><span class="p">)</span>
+
+    <span class="c1"># Allocate desc_index</span>
+    <span class="n">desc_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">desc_index</span><span class="p">[:]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="c1"># Keep track of roots at each snap</span>
+    <span class="n">snapmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">snapnum</span><span class="p">)</span>
+    <span class="n">snap_roots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">snapmax</span> <span class="o">+</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">snap_roots</span><span class="p">[:]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="n">prev_sn</span> <span class="o">=</span> <span class="n">snapmax</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">sn</span> <span class="o">=</span> <span class="n">snapnum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="c1"># check if it&#39;s a new root</span>
+        <span class="k">if</span> <span class="n">desc_node_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># this is only necessary because we may have roots at z&gt;0 (halos</span>
+            <span class="c1"># that disappear)</span>
+            <span class="n">snap_roots</span><span class="p">[:]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># cleanup previous step</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sn</span><span class="p">,</span> <span class="n">prev_sn</span><span class="p">):</span>
+                <span class="n">snap_roots</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="n">desc_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">snap_roots</span><span class="p">[</span><span class="n">sn</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">snap_roots</span><span class="p">[</span><span class="n">sn</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="n">prev_sn</span> <span class="o">=</span> <span class="n">sn</span>
+
+    <span class="k">return</span> <span class="n">desc_index</span>
+
+
+<span class="nd">@numba</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_progenitor_idx</span><span class="p">(</span><span class="n">desc_index</span><span class="p">):</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">desc_index</span><span class="p">)</span>
+
+    <span class="c1"># Count how many progenitors each halo has</span>
+    <span class="n">progenitor_count</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">dix</span> <span class="o">=</span> <span class="n">desc_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dix</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">progenitor_count</span><span class="p">[</span><span class="n">dix</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">progenitor_offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">)</span>
+    <span class="n">progenitor_array_size</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">progenitor_offsets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">progenitor_array_size</span>
+        <span class="n">progenitor_array_size</span> <span class="o">+=</span> <span class="n">progenitor_count</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="c1"># Create an array that will hold indices to progenitors for each halo</span>
+    <span class="n">progenitor_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">progenitor_array_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">progenitor_array</span><span class="p">[:]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span>  <span class="c1"># nothing should be -2 after</span>
+
+    <span class="c1"># A temporary array to keep current offsets to write progenitor indices</span>
+    <span class="n">progenitor_localoffsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">dix</span> <span class="o">=</span> <span class="n">desc_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">dix</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">write_pos</span> <span class="o">=</span> <span class="n">progenitor_offsets</span><span class="p">[</span><span class="n">dix</span><span class="p">]</span> <span class="o">+</span> <span class="n">progenitor_localoffsets</span><span class="p">[</span><span class="n">dix</span><span class="p">]</span>
+            <span class="n">progenitor_array</span><span class="p">[</span><span class="n">write_pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">progenitor_localoffsets</span><span class="p">[</span><span class="n">dix</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">progenitor_array</span><span class="p">,</span> <span class="n">progenitor_count</span><span class="p">,</span> <span class="n">progenitor_offsets</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_indices</span><span class="p">(</span><span class="n">snapnum</span><span class="p">,</span> <span class="n">desc_node_index</span><span class="p">):</span>
+    <span class="n">desc_index</span> <span class="o">=</span> <span class="n">_create_desc_index</span><span class="p">(</span><span class="n">snapnum</span><span class="p">,</span> <span class="n">desc_node_index</span><span class="p">)</span>
+    <span class="n">progenitor_array</span><span class="p">,</span> <span class="n">progenitor_count</span><span class="p">,</span> <span class="n">progenitor_offsets</span> <span class="o">=</span> <span class="n">_create_progenitor_idx</span><span class="p">(</span>
+        <span class="n">desc_index</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">desc_index</span><span class="p">,</span> <span class="n">progenitor_array</span><span class="p">,</span> <span class="n">progenitor_count</span><span class="p">,</span> <span class="n">progenitor_offsets</span>
+
+
+<span class="nd">@numba</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_massthreshold_mask</span><span class="p">(</span>
+    <span class="n">snapnum</span><span class="p">,</span> <span class="n">tree_node_mass</span><span class="p">,</span> <span class="n">desc_node_index</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">threshold_mass</span><span class="p">,</span> <span class="n">snap0</span>
+<span class="p">):</span>
+    <span class="n">nhalos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">snapnum</span><span class="p">)</span>
+    <span class="n">snap_roots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">snap0</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numba</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
+    <span class="n">snap_roots</span><span class="p">[:]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">lastsnap</span> <span class="o">=</span> <span class="n">snapnum</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nhalos</span><span class="p">):</span>
+        <span class="c1"># print(i, snap_roots)</span>
+        <span class="k">if</span> <span class="n">desc_node_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># a completely new root</span>
+            <span class="n">snap_roots</span><span class="p">[:]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">elif</span> <span class="n">snapnum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">lastsnap</span><span class="p">:</span>
+            <span class="c1"># we are at a new branch</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lastsnap</span><span class="p">,</span> <span class="n">snapnum</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
+                <span class="n">snap_roots</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">desc_valid</span> <span class="o">=</span> <span class="n">desc_node_index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">snap_roots</span><span class="p">[</span><span class="n">snapnum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">mask</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">tree_node_mass</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">threshold_mass</span> <span class="ow">and</span> <span class="n">desc_valid</span>
+        <span class="n">snap_roots</span><span class="p">[</span><span class="n">snapnum</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">lastsnap</span> <span class="o">=</span> <span class="n">snapnum</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+
+<span class="nd">@numba</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_fix_branch_size</span><span class="p">(</span><span class="n">branch_size</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+    <span class="n">nhalos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">branch_size</span><span class="p">)</span>
+    <span class="n">cumulative_counter</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nhalos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint64</span><span class="p">)</span>
+    <span class="n">current_counter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nhalos</span><span class="p">):</span>
+        <span class="n">cumulative_counter</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_counter</span>
+        <span class="n">current_counter</span> <span class="o">+=</span> <span class="n">mask</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">cumulative_counter</span><span class="p">[</span><span class="n">nhalos</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_counter</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">numba</span><span class="o">.</span><span class="n">prange</span><span class="p">(</span><span class="n">nhalos</span><span class="p">):</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="n">branch_size</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">branch_size</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cumulative_counter</span><span class="p">[</span><span class="n">end</span><span class="p">]</span> <span class="o">-</span> <span class="n">cumulative_counter</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="read_forest">
+<a class="viewcode-back" href="../../../../reading/getting_started/#haccytrees.mergertrees.read_forest">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_forest</span><span class="p">(</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">simulation</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Simulation</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">nchunks</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">chunknum</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">include_fields</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">create_indices</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">add_scale_factor</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">mass_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">include_non_z0_roots</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read a HDF5 merger-forest</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    filename</span>
+<span class="sd">        the path to the merger forest file</span>
+
+<span class="sd">    simulation</span>
+<span class="sd">        either a valid simulation name or a Simulation instance, used to add the</span>
+<span class="sd">        scale factor to the output</span>
+
+<span class="sd">    nchunks</span>
+<span class="sd">        if not None, the file will be split in ``nchunks`` equally-sized parts</span>
+
+<span class="sd">    chunknum</span>
+<span class="sd">        if ``nchunks`` is set, ``chunknum`` determines which chunk number will</span>
+<span class="sd">        be read. First chunk has ``chunknum=0``, has to be smaller than</span>
+<span class="sd">        ``nchunks``.</span>
+
+<span class="sd">    include_fields</span>
+<span class="sd">        the columns that will be read from the HDF5 file. If ``None``, all data</span>
+<span class="sd">        will be read. Note: some essential columns will always be read, check</span>
+<span class="sd">        ``haccytrees.mergertrees.forest_reader._essential_fields``.</span>
+
+<span class="sd">    create_indices</span>
+<span class="sd">        if ``True``, will add descendant_idx``, ``progenitor_count``,</span>
+<span class="sd">        ``progenitor_offset`` to the forest and return the ``progenitor_array``</span>
+
+<span class="sd">    add_scale_factor</span>
+<span class="sd">        if ``True``, will add the scale factor column to the forest data</span>
+
+<span class="sd">    mass_threshold</span>
+<span class="sd">        if not ``None``, the reader will prune all halos below the specified</span>
+<span class="sd">        mass threshold (in Msun/h)</span>
+
+<span class="sd">    include_non_z0_roots</span>
+<span class="sd">        if True, will also include trees that are not rooted at z=0 (i.e. halos</span>
+<span class="sd">        that for some reason &quot;disappear&quot; during the evolution)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    forest: Mapping[str, np.ndarray]</span>
+<span class="sd">        the merger tree forest data</span>
+
+<span class="sd">    progenitor_array: Optional[np.ndarray]</span>
+<span class="sd">        a progenitor index array that can be used together with the</span>
+<span class="sd">        ``progenitor_offset`` and ``progenitor_count`` arrays in the forest</span>
+<span class="sd">        data in order to easily find all progenitors of a halo. Only returned if</span>
+<span class="sd">        ``create_indices=True``.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">simulation</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;.cfg&quot;</span><span class="p">:</span>
+            <span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="o">.</span><span class="n">parse_config</span><span class="p">(</span><span class="n">simulation</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="o">.</span><span class="n">simulations</span><span class="p">[</span><span class="n">simulation</span><span class="p">]</span>
+
+    <span class="n">root_step</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">cosmotools_steps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">nhalos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s2">&quot;forest&quot;</span><span class="p">][</span><span class="s2">&quot;tree_node_index&quot;</span><span class="p">])</span>
+        <span class="n">roots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;index_</span><span class="si">{</span><span class="n">root_step</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">][</span><span class="s2">&quot;index&quot;</span><span class="p">])</span>
+        <span class="n">nroots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">roots</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">include_non_z0_roots</span><span class="p">:</span>
+            <span class="n">file_end</span> <span class="o">=</span> <span class="n">nhalos</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">file_end</span> <span class="o">=</span> <span class="n">roots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;forest&quot;</span><span class="p">][</span><span class="s2">&quot;branch_size&quot;</span><span class="p">][</span><span class="n">roots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+
+    <span class="k">if</span> <span class="n">nchunks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">chunksize</span> <span class="o">=</span> <span class="n">nroots</span> <span class="o">//</span> <span class="n">nchunks</span>
+        <span class="k">if</span> <span class="n">chunknum</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: no chunknum specified, reading first chunk&quot;</span><span class="p">)</span>
+            <span class="n">chunknum</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">chunknum</span> <span class="o">&gt;=</span> <span class="n">nchunks</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid chunknum: </span><span class="si">{</span><span class="n">chunknum</span><span class="si">}</span><span class="s2"> needs to be smaller than </span><span class="si">{</span><span class="n">nchunks</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">roots</span><span class="p">[</span><span class="n">chunknum</span> <span class="o">*</span> <span class="n">chunksize</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">chunknum</span> <span class="o">==</span> <span class="n">nchunks</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">file_end</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">roots</span><span class="p">[(</span><span class="n">chunknum</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">chunksize</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">file_end</span>
+
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">forest</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;forest&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">include_fields</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">include_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">forest</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_essential_fields</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">include_fields</span><span class="p">:</span>
+                    <span class="n">include_fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">include_fields</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">forest</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">mass_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;snapnum&quot;</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="c1"># snapnum, tree_node_mass, desc_node_index, mask, threshold_mass, snap0</span>
+        <span class="n">_get_massthreshold_mask</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;snapnum&quot;</span><span class="p">],</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;tree_node_mass&quot;</span><span class="p">],</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;desc_node_index&quot;</span><span class="p">],</span>
+            <span class="n">mask</span><span class="p">,</span>
+            <span class="n">mass_threshold</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">cosmotools_steps</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Fix branch size</span>
+        <span class="n">_fix_branch_size</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;branch_size&quot;</span><span class="p">],</span> <span class="n">mask</span><span class="p">)</span>
+
+        <span class="c1"># Apply mask</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">add_scale_factor</span><span class="p">:</span>
+        <span class="n">steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">cosmotools_steps</span><span class="p">)</span>
+        <span class="n">timestep</span> <span class="o">=</span> <span class="n">steps</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;snapnum&quot;</span><span class="p">]]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;scale_factor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">step2a</span><span class="p">(</span><span class="n">timestep</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">create_indices</span><span class="p">:</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">_create_indices</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;snapnum&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;desc_node_index&quot;</span><span class="p">])</span>
+        <span class="n">progenitor_array</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;descendant_idx&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;progenitor_count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;progenitor_offset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;halo_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">progenitor_array</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">read_forest_targets</span><span class="p">(</span>
+    <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">simulation</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Simulation</span><span class="p">],</span>
+    <span class="n">root_indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">include_fields</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">create_indices</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">add_scale_factor</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">mass_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read a HDF5 merger-forest</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    filename</span>
+<span class="sd">        the path to the merger forest file</span>
+
+<span class="sd">    simulation</span>
+<span class="sd">        either a valid simulation name or a Simulation instance, used to add the</span>
+<span class="sd">        scale factor to the output</span>
+
+<span class="sd">    root_indices</span>
+<span class="sd">        the start points of the subtrees that should be read (offset in the forest</span>
+<span class="sd">        arrays)</span>
+
+<span class="sd">    include_fields</span>
+<span class="sd">        the columns that will be read from the HDF5 file. If ``None``, all data</span>
+<span class="sd">        will be read. Note: some essential columns will always be read, check</span>
+<span class="sd">        ``haccytrees.mergertrees.forest_reader._essential_fields``.</span>
+
+<span class="sd">    create_indices</span>
+<span class="sd">        if ``True``, will add descendant_idx``, ``progenitor_count``,</span>
+<span class="sd">        ``progenitor_offset`` to the forest and return the ``progenitor_array``</span>
+
+<span class="sd">    add_scale_factor</span>
+<span class="sd">        if ``True``, will add the scale factor column to the forest data</span>
+
+<span class="sd">    mass_threshold</span>
+<span class="sd">        if not ``None``, the reader will prune all halos below the specified</span>
+<span class="sd">        mass threshold (in Msun/h)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    forest: Mapping[str, np.ndarray]</span>
+<span class="sd">        the merger tree forest data</span>
+
+<span class="sd">    progenitor_array: Optional[np.ndarray]</span>
+<span class="sd">        a progenitor index array that can be used together with the</span>
+<span class="sd">        ``progenitor_offset`` and ``progenitor_count`` arrays in the forest</span>
+<span class="sd">        data in order to easily find all progenitors of a halo. Only returned if</span>
+<span class="sd">        ``create_indices=True``.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="o">.</span><span class="n">simulations</span><span class="p">[</span><span class="n">simulation</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">roots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s2">&quot;index_499&quot;</span><span class="p">][</span><span class="s2">&quot;index&quot;</span><span class="p">])</span>
+        <span class="n">file_end</span> <span class="o">=</span> <span class="n">roots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;forest&quot;</span><span class="p">][</span><span class="s2">&quot;branch_size&quot;</span><span class="p">][</span><span class="n">roots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">root_indices</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">file_end</span>
+        <span class="n">starts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">root_indices</span><span class="p">)</span>
+        <span class="n">ends</span> <span class="o">=</span> <span class="n">starts</span> <span class="o">+</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;forest&quot;</span><span class="p">][</span><span class="s2">&quot;branch_size&quot;</span><span class="p">][</span><span class="n">root_indices</span><span class="p">]</span>
+
+    <span class="n">root_sizes</span> <span class="o">=</span> <span class="n">ends</span> <span class="o">-</span> <span class="n">starts</span>
+    <span class="n">data_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">root_sizes</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">forest</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;forest&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">include_fields</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">include_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">forest</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_essential_fields</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">include_fields</span><span class="p">:</span>
+                    <span class="n">include_fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+        <span class="c1"># allocate</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">include_fields</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">data_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">forest</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="c1"># read</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">root_indices</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">include_fields</span><span class="p">:</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">offset</span> <span class="p">:</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">root_sizes</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">forest</span><span class="p">[</span><span class="n">k</span><span class="p">][</span>
+                    <span class="n">starts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">:</span> <span class="n">ends</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="p">]</span>
+            <span class="n">offset</span> <span class="o">+=</span> <span class="n">root_sizes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="n">offset</span> <span class="o">==</span> <span class="n">data_size</span>
+
+    <span class="k">if</span> <span class="n">mass_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;snapnum&quot;</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="c1"># snapnum, tree_node_mass, desc_node_index, mask, threshold_mass, snap0</span>
+        <span class="n">_get_massthreshold_mask</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;snapnum&quot;</span><span class="p">],</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;tree_node_mass&quot;</span><span class="p">],</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;desc_node_index&quot;</span><span class="p">],</span>
+            <span class="n">mask</span><span class="p">,</span>
+            <span class="n">mass_threshold</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">cosmotools_steps</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Fix branch size</span>
+        <span class="n">_fix_branch_size</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;branch_size&quot;</span><span class="p">],</span> <span class="n">mask</span><span class="p">)</span>
+
+        <span class="c1"># Apply mask</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">add_scale_factor</span><span class="p">:</span>
+        <span class="n">steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">cosmotools_steps</span><span class="p">)</span>
+        <span class="n">timestep</span> <span class="o">=</span> <span class="n">steps</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;snapnum&quot;</span><span class="p">]]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;scale_factor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">step2a</span><span class="p">(</span><span class="n">timestep</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">create_indices</span><span class="p">:</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">_create_indices</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;snapnum&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;desc_node_index&quot;</span><span class="p">])</span>
+        <span class="n">progenitor_array</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;descendant_idx&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;progenitor_count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;progenitor_offset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">[</span><span class="s2">&quot;halo_index&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">progenitor_array</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="kc">None</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020, Michael Buehlmann.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
