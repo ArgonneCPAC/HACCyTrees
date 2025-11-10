@@ -2,7 +2,7 @@
 
 __author__ = """Michael Buehlmann"""
 __email__ = "buehlmann.michi@gmail.com"
-__version__ = "0.10.0"
+__version__ = "1.0.0"
 
 from .simulations import Simulation
 from . import mergertrees
