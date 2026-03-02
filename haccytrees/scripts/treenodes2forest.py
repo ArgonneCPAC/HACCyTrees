@@ -29,6 +29,7 @@ def logger(x, **kwargs):
 
 def parse_config(config_path: Path) -> Dict[str, Any]:
     config = configparser.ConfigParser()
+    config.optionxform = str
     config.read(config_path)
 
     base_path = config_path.parent
