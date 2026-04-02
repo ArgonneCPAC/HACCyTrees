@@ -618,6 +618,21 @@ def cli(
         )
 
         ################################################################################
+        # Sort cores by unique_id, with central core first in each group
+        sort_key = np.lexsort((1 - cores_step["central"], cores_step["unique_id"]))
+        cores_step = {k: v[sort_key] for k, v in cores_step.items()}
+
+        # Build group index: offset and count for each unique_id
+        unique_ids, group_offsets, group_counts = np.unique(
+            cores_step["unique_id"], return_index=True, return_counts=True
+        )
+        n_no_central = int(np.sum(cores_step["central"][group_offsets] != 1))
+        n_no_central_global = partition_cube.comm.reduce(n_no_central, op=MPI.SUM, root=0)
+        n_groups_global = partition_cube.comm.reduce(len(group_offsets), op=MPI.SUM, root=0)
+        if partition_cube.rank == 0:
+            print(f"   - {n_no_central_global} / {n_groups_global} groups have no central core", flush=True)
+
+        ################################################################################
         # Get additional indices (Andrew)
         if partition_cube.rank == 0:
             print(" - calculate additional indices", flush=True)
@@ -702,10 +717,15 @@ def cli(
         output_fields += ["top_host_tag", "secondary_top_host_tag"]
         output_fields += ["top_host_idx", "secondary_top_host_idx"]
         with h5py.File(output_file, "w") as f:
-            for k in output_fields:
-                f.create_dataset(k, data=cores_step[k])
             f.attrs["snapnum"] = snap_num
             f.attrs["theta_extent"] = partition_s2.theta_extent
             f.attrs["phi_extent"] = partition_s2.phi_extent
+            grp = f.create_group("data")
+            for k in output_fields:
+                grp.create_dataset(k, data=cores_step[k])
+            grp = f.create_group("index")
+            grp.create_dataset("unique_id", data=unique_ids)
+            grp.create_dataset("offset", data=group_offsets)
+            grp.create_dataset("count", data=group_counts)
 
         partition_s2.comm.Barrier()
