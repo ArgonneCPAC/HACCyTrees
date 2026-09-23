@@ -99,29 +99,27 @@ class Cosmology:
         if self.w0 == -1.0 and self.wa == 0.0:
             w_term = 1.0
         else:
-            w_term = a**(-3*(1 + self.w0 + self.wa))*np.exp(-3.*self.wa*(1-a))
+            w_term = a ** (-3 * (1 + self.w0 + self.wa)) * np.exp(
+                -3.0 * self.wa * (1 - a)
+            )
 
-        return (
-            100
-            * self.h
-            * np.sqrt(
-                self.Omega_m * a**-3
-                + self.Omega_L * w_term
-                )
-        ) 
-
+        return 100 * self.h * np.sqrt(self.Omega_m * a**-3 + self.Omega_L * w_term)
 
     def lookback_time(self, a):
         """Lookback time in Gyr from a=1"""
         # Integrate 1/(a'*H(a')) da' from a to 1
         # TODO: add radiation / neutrinos
+        # the dark-energy term is a function of the integration variable (it used to be
+        # evaluated once at the lower bound, wrong for w0 != -1 or wa != 0)
         if self.w0 == -1.0 and self.wa == 0.0:
-            w_term = 1.0
+            w_term = lambda a: 1.0
         else:
-            w_term = a**(-3*(1 + self.w0 + self.wa))*np.exp(-3.*self.wa*(1-a))
-        integrand = lambda a: (
-            self.Omega_m / a + self.Omega_L * a**2 * w_term
-        ) ** (-0.5)
+            w_term = lambda a: a ** (-3 * (1 + self.w0 + self.wa)) * np.exp(
+                -3.0 * self.wa * (1 - a)
+            )
+        integrand = lambda a: (self.Omega_m / a + self.Omega_L * a**2 * w_term(a)) ** (
+            -0.5
+        )
         da = 1e-3
         _a = np.linspace(a, 1, int(np.max((1 - a) / da)))
         return self.hubble_time * np.trapz(integrand(_a), _a, axis=0)
@@ -135,7 +133,9 @@ class Cosmology:
         if self.w0 == -1.0 and self.wa == 0.0:
             w_term = 1.0
         else:
-            w_term = a**(-3*(1 + self.w0 + self.wa))*np.exp(-3.*self.wa*(1-a))
+            w_term = a ** (-3 * (1 + self.w0 + self.wa)) * np.exp(
+                -3.0 * self.wa * (1 - a)
+            )
         return self.Omega_m * a**-3 + self.Omega_L * w_term
 
     def func_Omega_m(self, a):
@@ -365,4 +365,3 @@ DiscoveryW0WA = Simulation(
     cosmotools_steps=_discovery_analysis_steps,
     fullalive_steps=_discovery_analysis_steps,
 )
-

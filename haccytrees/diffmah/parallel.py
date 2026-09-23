@@ -78,12 +78,9 @@ def fit_mahs_parallel(
     n = len(mahs)
     if n == 0:
         return empty_results()
+    # always in spawned workers (also for workers == 1), so the CPU backend and the
+    # single-threaded XLA settings hold regardless of the caller's JAX state
     workers = max(1, min(workers, n))
-    if workers == 1:
-        env = cpu_environment()
-        # in-process only if JAX has not been imported with another platform
-        os.environ.update({k: v for k, v in env.items() if k not in os.environ})
-        return fit_mahs(tarr, mahs, cfg)
     # the workers inherit the caller's CPU affinity mask (e.g. the MPI rank's 16 cores) and the
     # OS schedules them within it; each worker runs single-threaded XLA (cpu_environment)
     ctx = mp.get_context("spawn")
