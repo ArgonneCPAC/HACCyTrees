@@ -166,6 +166,8 @@ def cli(
                 calculate_host_rows=False,
             )
             rows = fm["absolute_row_idx"]
+            if len(rows) == 0:  # fewer roots than chunks: early chunks are empty
+                continue
             assert rows[0] == nrows, f"non-contiguous chunk {c}: {rows[0]} != {nrows}"
             mahs = mah_from_mass(fm[mass_field], sim.cosmo.h)
             del fm
@@ -180,6 +182,9 @@ def cli(
                 f"  subvol {i} chunk {c}: {len(rows)} cores, {time.time() - t0:.0f}s elapsed",
                 flush=True,
             )
+        if not parts:
+            print(f"  subvol {i}: no cores, skipping", flush=True)
+            continue
         res = {
             k: np.concatenate([p[k] for p in parts])
             for k in DIFFMAH_FIELDS + EXTRA_FIELDS

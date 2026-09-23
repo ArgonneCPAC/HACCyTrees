@@ -276,12 +276,13 @@ def fit_targets(tarr: np.ndarray, tg: Targets, cfg: FitConfig) -> dict[str, np.n
     out["n_points_per_fit"] = tg.npts.astype(np.int64)
     out["fit_algo"] = np.where(skip, -1, 0).astype(np.int64)
     tol = cfg.bound_tol
-    at_bound = (
-        (p[:, 2] >= MAH_BOUNDS["early_index"][1] - tol)
-        | (p[:, 2] <= p[:, 3] + tol)
-        | (np.abs(p[:, 1]) >= MAH_BOUNDS["logtc"][1] - tol)
-        | (p[:, 3] >= MAH_BOUNDS["late_index"][1] - tol)
-    )
+    # any fitted parameter within tol of either of its bounds, or early_index pinned to
+    # late_index (its effective lower bound). late_index at its lower bound (0.1) and
+    # logtc at +-1 are common and not by themselves a sign of a bad fit.
+    at_bound = p[:, 2] <= p[:, 3] + tol
+    for i, k in enumerate(("logm0", "logtc", "early_index", "late_index")):
+        lo, hi = MAH_BOUNDS[k]
+        at_bound |= (p[:, i] <= lo + tol) | (p[:, i] >= hi - tol)
     flag = np.zeros(n, dtype=np.int8)
     flag[skip] |= FLAG_SKIPPED
     flag[~skip & (niter >= cfg.maxiter)] |= FLAG_HIT_CAP
