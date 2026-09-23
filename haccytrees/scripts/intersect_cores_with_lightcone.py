@@ -22,6 +22,9 @@ core_fields = [
     "x",
     "y",
     "z",
+    "vx",
+    "vy",
+    "vz",
     "fof_halo_tag",
     "central",
     "core_tag",
@@ -29,6 +32,32 @@ core_fields = [
     "infall_fof_halo_center_y",
     "infall_fof_halo_center_z",
 ]
+
+# Fields of the top host core that are copied to each core (at the lightcone step),
+# if they exist in the coreforest files.
+top_host_core_fields = [
+    f"infall_fof_halo_eigS{i}{x}" for i in (1, 2, 3) for x in ("X", "Y", "Z")
+]
+
+# diffmah fits (one row per core = per coreforest matrix row, files named by the
+# coreforest file index), copied to each core and, for a subset, from the top and
+# secondary ("penultimate") host core. Missing fits are marked with DIFFMAH_MISSING
+# in the diffmah files, and hosts that do not exist get the same marker.
+DEFAULT_DIFFMAH_FIELDS = [
+    "early_index",
+    "late_index",
+    "logm0",
+    "logtc",
+    "loss",
+    "n_points_per_fit",
+    "t_peak",
+]
+DEFAULT_DIFFMAH_HOST_FIELDS = ["early_index", "late_index", "logm0", "logtc", "t_peak"]
+DIFFMAH_MISSING = -99
+
+# matrix-row references into the coreforest matrix (chunk-local when read, made
+# rank-local when chunks are concatenated in read_corematrix)
+host_row_fields = ["host_row", "top_host_row", "secondary_top_host_row"]
 
 
 def compose_unique_id(rep, tag):
@@ -53,20 +82,168 @@ def update_host_tag_matrix(host_row, core_tag, host_tag):
                 host_tag[i, j] = -1
 
 
+def get_infall_time_indices(
+    host_row, is_central, top_host_row, secondary_top_host_row, iz
+):
+    """Timestep of first infall into penultimate and ultimate hosts, -1 for centrals
+
+    Copied verbatim from diffsky (diffsky/data_loaders/hacc_utils/load_hacc_cores.py,
+    commit 3996ab0b) so that the indices stored on the lightcone are the ones diffsky
+    computes for a core observed at snapshot column `iz`. The returned values are
+    column indices into the coreforest snapshot axis (the simulation's cosmotools
+    steps). Note that the penultimate-host search runs over all columns, as in
+    diffsky, and argmax returns 0 when no column matches.
+    """
+    _X = top_host_row
+    M_ult_host = host_row == _X[:, iz].reshape((-1, 1))
+    indx_t_ult_inf_case2 = np.argmax(M_ult_host[:, : iz + 1], axis=1)
+
+    # Was the core identified prior to iz?
+    core_only_minus1 = np.all(host_row[:, : iz + 1] == -1, axis=1)
+
+    # Was the core always a central prior to iz?
+    is_central_whole_life = ~np.any(
+        (host_row[:, : iz + 1] > -1) & (is_central[:, : iz + 1] < 1), axis=1
+    )
+
+    # msk_case1: non-satellites
+    msk_case1 = core_only_minus1 | is_central_whole_life
+
+    # indx_t_ult_inf = indx_t_ult_inf_case2 for satellites, -1 otherwise
+    indx_t_ult_inf = np.where(msk_case1, -1, indx_t_ult_inf_case2)
+
+    _Y = secondary_top_host_row
+    M_pen_host = _X == _Y[:, iz].reshape((-1, 1))
+    indx_t_pen_inf_case3 = np.argmax(M_pen_host, axis=1)
+
+    # msk_case3: satellites with an existing secondary host at iz
+    msk_case3 = ~msk_case1 & (secondary_top_host_row[:, iz] != -1)
+
+    # indx_t_ult_inf = indx_t_ult_inf_case3 for sats-of-sats, -1 otherwise
+    indx_t_pen_inf = np.where(msk_case3, indx_t_pen_inf_case3, -1)
+
+    return indx_t_ult_inf, indx_t_pen_inf
+
+
+def create_dataset(group, name: str, data: np.ndarray, compression_level: int):
+    """gzip-compressed (with byte shuffle) chunked dataset; level 0 writes it plain.
+    Empty datasets cannot be chunked and are always written plain."""
+    if compression_level > 0 and len(data) > 0:
+        group.create_dataset(
+            name,
+            data=data,
+            chunks=True,
+            shuffle=True,
+            compression="gzip",
+            compression_opts=compression_level,
+        )
+    else:
+        group.create_dataset(name, data=data)
+
+
+def read_diffmah_rows(
+    diffmah_pattern: str,
+    file_idx: int,
+    row_start: int,
+    row_end: int,
+    fields: list[str],
+    float_dtype: str = "float32",
+) -> dict[str, np.ndarray]:
+    """read the diffmah fits of coreforest matrix rows [row_start, row_end) of file file_idx
+
+    Floating point fields are cast to float_dtype (the fit parameters span
+    logm0 11.5..17, logtc -1..1, indices 0.1..10, t_peak 1..14 Gyr, loss 1e-9..0.1,
+    none of which needs double precision); integer fields are stored as int16.
+    """
+    filename = diffmah_pattern.replace("#", str(file_idx))
+    with h5py.File(filename) as f:
+        data = {k: f[k][row_start:row_end] for k in fields}
+    for k, v in data.items():
+        assert len(v) == row_end - row_start, (
+            f"{filename}: {k} has {len(v)} rows in [{row_start}, {row_end}), "
+            f"does the diffmah file match the coreforest file?"
+        )
+        if np.issubdtype(v.dtype, np.floating):
+            data[k] = v.astype(float_dtype)
+        else:
+            assert np.all(np.abs(v) < (1 << 15))
+            data[k] = v.astype(np.int16)
+    return data
+
+
+def host_quantities_at_step(
+    corematrix: dict[str, np.ndarray],
+    snap_num: int,
+    diffmah_host_fields: list[str],
+) -> dict[str, np.ndarray]:
+    """per-core (1d) quantities at snapshot column snap_num that need the full matrix:
+    diffmah fits and infall properties of the top and secondary host cores, and the
+    diffsky infall time indices. Must be called before the cores are redistributed,
+    since the host rows refer to this rank's corematrix."""
+    out: dict[str, np.ndarray] = {}
+    top_row = corematrix["top_host_row"][:, snap_num]
+    sec_row = corematrix["secondary_top_host_row"][:, snap_num]
+    top_ok = top_row >= 0
+    sec_ok = sec_row >= 0
+    top_safe = np.where(top_ok, top_row, 0)
+    sec_safe = np.where(sec_ok, sec_row, 0)
+
+    for k in diffmah_host_fields:
+        if k in corematrix:
+            v = corematrix[k]
+            out[f"top_host_{k}"] = np.where(
+                top_ok, v[top_safe], DIFFMAH_MISSING
+            ).astype(v.dtype)
+            out[f"sec_host_{k}"] = np.where(
+                sec_ok, v[sec_safe], DIFFMAH_MISSING
+            ).astype(v.dtype)
+
+    for k in top_host_core_fields:
+        if k in corematrix:
+            v = corematrix[k][:, snap_num]
+            out[f"top_host_{k}"] = np.where(top_ok, v[top_safe], np.nan).astype(v.dtype)
+
+    indx_t_ult_inf, indx_t_pen_inf = get_infall_time_indices(
+        corematrix["host_row"],
+        corematrix["central"],
+        corematrix["top_host_row"],
+        corematrix["secondary_top_host_row"],
+        snap_num,
+    )
+    out["indx_t_ult_inf"] = indx_t_ult_inf.astype(np.int32)
+    out["indx_t_pen_inf"] = indx_t_pen_inf.astype(np.int32)
+    return out
+
+
 def read_corematrix(
     partition_cube: Partition,
     coreforest_base: Path,
     config: CoretreesAssemblyConfig,
     *,
+    diffmah_pattern: str | None = None,
+    diffmah_fields: list[str] = DEFAULT_DIFFMAH_FIELDS,
+    diffmah_dtype: str = "float32",
+    nchunks: int = 8,
     dbg_nfiles: int | None = None,
 ) -> dict[str, np.ndarray]:
     if partition_cube.rank == 0:
         number_of_core_files = 0
         while Path(f"{coreforest_base}.{number_of_core_files}.hdf5").exists():
             number_of_core_files += 1
+        # optional fields: only those present in the coreforest files
+        with h5py.File(f"{coreforest_base}.0.hdf5") as f:
+            available = set(f["data"].keys())
+        include_fields = core_fields + [
+            k for k in top_host_core_fields if k in available
+        ]
+        missing = [k for k in top_host_core_fields if k not in available]
+        if missing:
+            print(f"Coreforest has no {missing}, skipping top_host_ copies", flush=True)
     else:
         number_of_core_files = None
+        include_fields = None
     number_of_core_files = partition_cube.comm.bcast(number_of_core_files, root=0)
+    include_fields = partition_cube.comm.bcast(include_fields, root=0)
 
     if dbg_nfiles is not None:
         number_of_core_files = dbg_nfiles
@@ -81,9 +258,9 @@ def read_corematrix(
             corematrix = corematrix_reader(
                 f"{coreforest_base}.{0}.hdf5",
                 config.simulation,
-                include_fields=core_fields,
+                include_fields=list(include_fields),
                 calculate_host_rows=True,
-                calculate_secondary_host_row=False,
+                calculate_secondary_host_row=True,
                 nchunks=10000,
                 chunknum=0,
             )
@@ -105,13 +282,17 @@ def read_corematrix(
             corematrix["secondary_top_host_tag"] = np.empty(
                 (0, corematrix["x"].shape[1]), dtype=np.int64
             )
+            if diffmah_pattern is not None:
+                for k, v in read_diffmah_rows(
+                    diffmah_pattern, 0, 0, 1, diffmah_fields, diffmah_dtype
+                ).items():
+                    corematrix[k] = np.empty((0,), dtype=v.dtype)
         corematrix = partition_cube.comm.bcast(corematrix, root=0)
 
     # Actually reading data
     if partition_cube.rank == 0:
         print(f"Reading {number_of_core_files} core files", flush=True)
     partition_cube.comm.Barrier()
-    nchunks = 8
 
     for j in range(
         partition_cube.rank, number_of_core_files * nchunks, partition_cube.nranks
@@ -122,7 +303,7 @@ def read_corematrix(
         _corematrix = corematrix_reader(
             f"{coreforest_base}.{i}.hdf5",
             config.simulation,
-            include_fields=core_fields,
+            include_fields=list(include_fields),
             calculate_host_rows=True,
             calculate_secondary_host_row=True,
             nchunks=nchunks,
@@ -132,6 +313,22 @@ def read_corematrix(
             _corematrix["x"].shape, i, dtype=np.uint16
         )
         _corematrix["coreforest_row_idx"] = _corematrix.pop("absolute_row_idx")
+        if diffmah_pattern is not None:
+            # diffmah row j of file i is coreforest matrix row j of file i; a chunk
+            # covers a contiguous range of matrix rows
+            _rows = _corematrix["coreforest_row_idx"]
+            assert len(_rows) > 0
+            assert _rows[-1] - _rows[0] + 1 == len(_rows)
+            _corematrix.update(
+                read_diffmah_rows(
+                    diffmah_pattern,
+                    i,
+                    int(_rows[0]),
+                    int(_rows[-1]) + 1,
+                    diffmah_fields,
+                    diffmah_dtype,
+                )
+            )
         _corematrix["coreforest_row_idx"] = np.tile(
             _corematrix["coreforest_row_idx"].reshape(-1, 1),
             (1, _corematrix["x"].shape[1]),
@@ -158,6 +355,11 @@ def read_corematrix(
         if corematrix is None:
             corematrix = _corematrix
         else:
+            # host rows are chunk-local: shift them to rows of the concatenated matrix
+            offset = corematrix["core_tag"].shape[0]
+            for k in host_row_fields:
+                if k in _corematrix:
+                    _corematrix[k][_corematrix[k] >= 0] += offset
             for k in corematrix.keys():
                 corematrix[k] = np.concatenate([corematrix[k], _corematrix[k]], axis=0)
 
@@ -313,9 +515,15 @@ def distribute_cores_at_step(
     corematrix: dict[str, np.ndarray],
     snap_num: int,
     simulation_np: int,
+    diffmah_host_fields: list[str] = DEFAULT_DIFFMAH_HOST_FIELDS,
 ):
-    # Get all cores at that step
-    cores_step = {k: v[:, snap_num] for k, v in corematrix.items()}
+    # Get all cores at that step (2d fields are per snapshot, 1d fields are per core)
+    cores_step = {
+        k: (v[:, snap_num] if v.ndim == 2 else v) for k, v in corematrix.items()
+    }
+    cores_step.update(
+        host_quantities_at_step(corematrix, snap_num, diffmah_host_fields)
+    )
     mask = cores_step["core_tag"] > 0
 
     # Make sure the host has the same fof_halo_tag as the core
@@ -388,6 +596,53 @@ def distribute_cores_at_step(
     type=str,
 )
 @click.option(
+    "--diffmah-pattern",
+    type=str,
+    default=None,
+    help="diffmah fit files, one per coreforest file, with # replaced by the "
+    "coreforest file index, e.g. /path/subvol_#_diffmah_fits.hdf5. Row j of the "
+    "diffmah file has to be matrix row j (coreforest_row_idx) of the coreforest file.",
+)
+@click.option(
+    "--diffmah-fields",
+    type=str,
+    default=",".join(DEFAULT_DIFFMAH_FIELDS),
+    show_default=True,
+    help="comma-separated datasets to copy from the diffmah files to each core",
+)
+@click.option(
+    "--diffmah-host-fields",
+    type=str,
+    default=",".join(DEFAULT_DIFFMAH_HOST_FIELDS),
+    show_default=True,
+    help="comma-separated subset of --diffmah-fields also copied from the top host "
+    "(top_host_*) and the secondary host (sec_host_*) core at the lightcone step; "
+    "empty to disable",
+)
+@click.option(
+    "--diffmah-dtype",
+    type=click.Choice(["float32", "float64"]),
+    default="float32",
+    show_default=True,
+    help="storage type of the diffmah floating point fields (core and host copies)",
+)
+@click.option(
+    "--compression-level",
+    type=click.IntRange(0, 9),
+    default=4,
+    show_default=True,
+    help="gzip level for the HDF5 datasets (with byte shuffle); 0 disables compression",
+)
+@click.option(
+    "--ncorechunks",
+    type=click.IntRange(1),
+    default=8,
+    show_default=True,
+    help="split every coreforest file into this many root-aligned chunks; the "
+    "nfiles*ncorechunks chunks are distributed round-robin over the ranks, so "
+    "the per-rank memory is set by ceil(nfiles*ncorechunks/nranks)/ncorechunks files",
+)
+@click.option(
     "--dbg-ncorefiles",
     type=int,
 )
@@ -396,8 +651,25 @@ def cli(
     lightcone_pattern: str,
     timestep_file: Path,
     output_base: Path,
+    diffmah_pattern: str | None,
+    diffmah_fields: str,
+    diffmah_host_fields: str,
+    diffmah_dtype: str,
+    compression_level: int,
+    ncorechunks: int,
     dbg_ncorefiles: int | None,
 ):
+    diffmah_fields = [k for k in diffmah_fields.split(",") if k]
+    diffmah_host_fields = [k for k in diffmah_host_fields.split(",") if k]
+    if diffmah_pattern is None:
+        diffmah_fields = []
+        diffmah_host_fields = []
+    unknown = [k for k in diffmah_host_fields if k not in diffmah_fields]
+    if unknown:
+        raise click.BadParameter(
+            f"--diffmah-host-fields {unknown} not in --diffmah-fields {diffmah_fields}"
+        )
+
     partition_cube = Partition(3)
     partition_s2 = S2Partition()
 
@@ -424,7 +696,14 @@ def cli(
     # Read all coretrees
     coreforest_base = config_file.parent / config.output_base
     corematrix = read_corematrix(
-        partition_cube, coreforest_base, config, dbg_nfiles=dbg_ncorefiles
+        partition_cube,
+        coreforest_base,
+        config,
+        diffmah_pattern=diffmah_pattern,
+        diffmah_fields=diffmah_fields,
+        diffmah_dtype=diffmah_dtype,
+        nchunks=ncorechunks,
+        dbg_nfiles=dbg_ncorefiles,
     )
 
     # Forward iterate over lightcone outputs
@@ -447,7 +726,7 @@ def cli(
         if partition_cube.rank == 0:
             print(" - Distribute cores at step", flush=True)
         cores_step = distribute_cores_at_step(
-            partition_cube, corematrix, snap_num, sim_np
+            partition_cube, corematrix, snap_num, sim_np, diffmah_host_fields
         )
         # At this point, cores and halos on the lightcone are on the same rank
 
@@ -631,10 +910,17 @@ def cli(
             cores_step["unique_id"], return_index=True, return_counts=True
         )
         n_no_central = int(np.sum(cores_step["central"][group_offsets] != 1))
-        n_no_central_global = partition_cube.comm.reduce(n_no_central, op=MPI.SUM, root=0)
-        n_groups_global = partition_cube.comm.reduce(len(group_offsets), op=MPI.SUM, root=0)
+        n_no_central_global = partition_cube.comm.reduce(
+            n_no_central, op=MPI.SUM, root=0
+        )
+        n_groups_global = partition_cube.comm.reduce(
+            len(group_offsets), op=MPI.SUM, root=0
+        )
         if partition_cube.rank == 0:
-            print(f"   - {n_no_central_global} / {n_groups_global} groups have no central core", flush=True)
+            print(
+                f"   - {n_no_central_global} / {n_groups_global} groups have no central core",
+                flush=True,
+            )
 
         ################################################################################
         # Get additional indices (Andrew)
@@ -720,16 +1006,34 @@ def cli(
         ]
         output_fields += ["top_host_tag", "secondary_top_host_tag"]
         output_fields += ["top_host_idx", "secondary_top_host_idx"]
+        # essential coreforest fields the reader adds (kept for backwards compatibility)
+        output_fields += [
+            k for k in ("host_core", "merged", "snapnum") if k in cores_step
+        ]
+        # diffmah fits of the core and its hosts, host infall shapes, infall indices
+        output_fields += [k for k in diffmah_fields if k in cores_step]
+        output_fields += [
+            f"{h}_{k}"
+            for h in ("top_host", "sec_host")
+            for k in diffmah_host_fields
+            if f"{h}_{k}" in cores_step
+        ]
+        output_fields += [
+            f"top_host_{k}"
+            for k in top_host_core_fields
+            if f"top_host_{k}" in cores_step
+        ]
+        output_fields += ["indx_t_ult_inf", "indx_t_pen_inf"]
         with h5py.File(output_file, "w") as f:
             f.attrs["snapnum"] = snap_num
             f.attrs["theta_extent"] = partition_s2.theta_extent
             f.attrs["phi_extent"] = partition_s2.phi_extent
             grp = f.create_group("data")
             for k in output_fields:
-                grp.create_dataset(k, data=cores_step[k])
+                create_dataset(grp, k, cores_step[k], compression_level)
             grp = f.create_group("index")
-            grp.create_dataset("unique_id", data=unique_ids)
-            grp.create_dataset("offset", data=group_offsets)
-            grp.create_dataset("count", data=group_counts)
+            create_dataset(grp, "unique_id", unique_ids, compression_level)
+            create_dataset(grp, "offset", group_offsets, compression_level)
+            create_dataset(grp, "count", group_counts, compression_level)
 
         partition_s2.comm.Barrier()
