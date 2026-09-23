@@ -163,12 +163,22 @@ def read_diffmah_rows(
             f"{filename}: {k} has {len(v)} rows in [{row_start}, {row_end}), "
             f"does the diffmah file match the coreforest file?"
         )
-        if np.issubdtype(v.dtype, np.floating):
-            data[k] = v.astype(float_dtype)
-        else:
-            assert np.all(np.abs(v) < (1 << 15))
-            data[k] = v.astype(np.int16)
+        dtype = diffmah_storage_dtype(k, float_dtype)
+        if np.issubdtype(dtype, np.integer):
+            assert np.all(np.abs(v) < 2 ** (8 * dtype.itemsize - 1))
+        data[k] = v.astype(dtype)
     return data
+
+
+def diffmah_storage_dtype(name: str, float_dtype: str) -> np.dtype:
+    """storage type of a diffmah column in the lightcone files: floats as float_dtype
+    (the fit parameters do not need double precision), counts and codes as int16,
+    fit_flag as int8"""
+    if name == "fit_flag":
+        return np.dtype(np.int8)
+    if name in ("n_points_per_fit", "fit_algo", "n_iterations"):
+        return np.dtype(np.int16)
+    return np.dtype(float_dtype)
 
 
 def host_quantities_at_step(
@@ -315,20 +325,28 @@ def read_corematrix(
         _corematrix["coreforest_row_idx"] = _corematrix.pop("absolute_row_idx")
         if diffmah_pattern is not None:
             # diffmah row j of file i is coreforest matrix row j of file i; a chunk
-            # covers a contiguous range of matrix rows
+            # covers a contiguous range of matrix rows (and can be empty when the
+            # file has fewer roots than chunks)
             _rows = _corematrix["coreforest_row_idx"]
-            assert len(_rows) > 0
-            assert _rows[-1] - _rows[0] + 1 == len(_rows)
-            _corematrix.update(
-                read_diffmah_rows(
-                    diffmah_pattern,
-                    i,
-                    int(_rows[0]),
-                    int(_rows[-1]) + 1,
-                    diffmah_fields,
-                    diffmah_dtype,
+            if len(_rows) > 0:
+                assert _rows[-1] - _rows[0] + 1 == len(_rows)
+                _corematrix.update(
+                    read_diffmah_rows(
+                        diffmah_pattern,
+                        i,
+                        int(_rows[0]),
+                        int(_rows[-1]) + 1,
+                        diffmah_fields,
+                        diffmah_dtype,
+                    )
                 )
-            )
+            else:
+                _corematrix.update(
+                    {
+                        k: np.empty(0, dtype=diffmah_storage_dtype(k, diffmah_dtype))
+                        for k in diffmah_fields
+                    }
+                )
         _corematrix["coreforest_row_idx"] = np.tile(
             _corematrix["coreforest_row_idx"].reshape(-1, 1),
             (1, _corematrix["x"].shape[1]),
@@ -664,6 +682,10 @@ def cli(
     if diffmah_pattern is None:
         diffmah_fields = []
         diffmah_host_fields = []
+    if diffmah_pattern is not None and "#" not in diffmah_pattern:
+        raise click.BadParameter(
+            "--diffmah-pattern needs a '#' placeholder for the coreforest file index"
+        )
     unknown = [k for k in diffmah_host_fields if k not in diffmah_fields]
     if unknown:
         raise click.BadParameter(
