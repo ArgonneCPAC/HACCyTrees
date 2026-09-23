@@ -459,8 +459,12 @@ def cli(
         mask = np.isin(cores_step["fof_halo_tag_clean"], halo_lc["fof_halo_tag_clean"])
         cores_step = {k: v[mask] for k, v in cores_step.items()}
 
-        # Sort cores by fof_halo_tag (including fragment index)
-        s = np.argsort(cores_step["fof_halo_tag"])
+        # Sort cores by fof_halo_tag (including fragment index), central core first
+        # within each halo: the leftmost core of a halo is used as the reference
+        # position below (searchsorted), so it has to be the central and not an
+        # arbitrary satellite (which happened before with a plain, unstable argsort
+        # and displaced ~12% of the centrals from the lightcone halo position).
+        s = np.lexsort((1 - cores_step["central"], cores_step["fof_halo_tag"]))
         cores_step = {k: v[s] for k, v in cores_step.items()}
 
         # Match cores to halos by fof_halo_tag (without fragment index)
