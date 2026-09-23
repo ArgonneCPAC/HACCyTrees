@@ -1,4 +1,5 @@
 import click
+import os
 from mpi4py import MPI
 
 from mpipartition import Partition, S2Partition, distribute, s2_distribute
@@ -171,14 +172,21 @@ def read_diffmah_rows(
 
 
 def diffmah_storage_dtype(name: str, float_dtype: str) -> np.dtype:
-    """storage type of a diffmah column in the lightcone files: floats as float_dtype
-    (the fit parameters do not need double precision), counts and codes as int16,
-    fit_flag as int8"""
+    """storage type of a diffmah column in the lightcone files (see read_diffmah_rows)"""
     if name == "fit_flag":
         return np.dtype(np.int8)
     if name in ("n_points_per_fit", "fit_algo", "n_iterations"):
         return np.dtype(np.int16)
     return np.dtype(float_dtype)
+
+
+def cast_diffmah_results(
+    results: dict[str, np.ndarray], fields: list[str], float_dtype: str
+) -> dict[str, np.ndarray]:
+    """select and cast the arrays returned by haccytrees.diffmah.fit_mahs"""
+    missing = [k for k in fields if k not in results]
+    assert not missing, f"diffmah fitter does not provide {missing}"
+    return {k: results[k].astype(diffmah_storage_dtype(k, float_dtype)) for k in fields}
 
 
 def host_quantities_at_step(
@@ -233,9 +241,31 @@ def read_corematrix(
     diffmah_pattern: str | None = None,
     diffmah_fields: list[str] = DEFAULT_DIFFMAH_FIELDS,
     diffmah_dtype: str = "float32",
+    diffmah_fit: bool = False,
+    diffmah_workers: int = 1,
+    diffmah_fit_maxiter: int = 100,
+    diffmah_fit_batch: int = 256,
     nchunks: int = 8,
     dbg_nfiles: int | None = None,
 ) -> dict[str, np.ndarray]:
+    if diffmah_fit:
+        # on-the-fly diffmah fits per chunk (haccytrees.diffmah, CPU worker processes)
+        from haccytrees.diffmah import (
+            cosmic_time,
+            default_cpu_config,
+            fit_mahs_parallel,
+            mah_from_mass,
+        )
+
+        _tarr = cosmic_time(config.simulation)
+        _cfg = default_cpu_config(
+            dtype="float64", maxiter=diffmah_fit_maxiter, batch=diffmah_fit_batch
+        )
+        if partition_cube.rank == 0:
+            print(
+                f"diffmah fits on the fly: {_cfg}, {diffmah_workers} workers/rank",
+                flush=True,
+            )
     if partition_cube.rank == 0:
         number_of_core_files = 0
         while Path(f"{coreforest_base}.{number_of_core_files}.hdf5").exists():
@@ -246,6 +276,8 @@ def read_corematrix(
         include_fields = core_fields + [
             k for k in top_host_core_fields if k in available
         ]
+        if diffmah_fit:
+            include_fields.append("infall_tree_node_mass")
         missing = [k for k in top_host_core_fields if k not in available]
         if missing:
             print(f"Coreforest has no {missing}, skipping top_host_ copies", flush=True)
@@ -297,6 +329,12 @@ def read_corematrix(
                     diffmah_pattern, 0, 0, 1, diffmah_fields, diffmah_dtype
                 ).items():
                     corematrix[k] = np.empty((0,), dtype=v.dtype)
+            elif diffmah_fit:
+                corematrix.pop("infall_tree_node_mass")
+                for k in diffmah_fields:
+                    corematrix[k] = np.empty(
+                        (0,), dtype=diffmah_storage_dtype(k, diffmah_dtype)
+                    )
         corematrix = partition_cube.comm.bcast(corematrix, root=0)
 
     # Actually reading data
@@ -325,10 +363,9 @@ def read_corematrix(
         _corematrix["coreforest_row_idx"] = _corematrix.pop("absolute_row_idx")
         if diffmah_pattern is not None:
             # diffmah row j of file i is coreforest matrix row j of file i; a chunk
-            # covers a contiguous range of matrix rows (and can be empty when the
-            # file has fewer roots than chunks)
+            # covers a contiguous range of matrix rows
             _rows = _corematrix["coreforest_row_idx"]
-            if len(_rows) > 0:
+            if len(_rows) > 0:  # empty when the file has fewer roots than chunks
                 assert _rows[-1] - _rows[0] + 1 == len(_rows)
                 _corematrix.update(
                     read_diffmah_rows(
@@ -347,6 +384,15 @@ def read_corematrix(
                         for k in diffmah_fields
                     }
                 )
+        elif diffmah_fit:
+            _mahs = mah_from_mass(
+                _corematrix.pop("infall_tree_node_mass"), config.simulation.cosmo.h
+            )
+            _res = fit_mahs_parallel(_tarr, _mahs, _cfg, diffmah_workers)
+            del _mahs
+            _corematrix.update(
+                cast_diffmah_results(_res, diffmah_fields, diffmah_dtype)
+            )
         _corematrix["coreforest_row_idx"] = np.tile(
             _corematrix["coreforest_row_idx"].reshape(-1, 1),
             (1, _corematrix["x"].shape[1]),
@@ -638,6 +684,33 @@ def distribute_cores_at_step(
     "empty to disable",
 )
 @click.option(
+    "--diffmah-fit",
+    is_flag=True,
+    help="compute the diffmah fits on the fly from the coreforest mass histories "
+    "(haccytrees.diffmah, CPU worker processes per rank) instead of reading them "
+    "with --diffmah-pattern; adds the fit_flag column",
+)
+@click.option(
+    "--diffmah-workers",
+    type=int,
+    default=0,
+    help="worker processes per rank for --diffmah-fit [default: OMP_NUM_THREADS or 1]",
+)
+@click.option(
+    "--diffmah-fit-maxiter",
+    type=int,
+    default=100,
+    show_default=True,
+    help="iteration cap of the on-the-fly fitter (scipy-like stopping rule, float64)",
+)
+@click.option(
+    "--diffmah-fit-batch",
+    type=int,
+    default=256,
+    show_default=True,
+    help="cores per optimizer call of the on-the-fly fitter (CPU: keep small)",
+)
+@click.option(
     "--diffmah-dtype",
     type=click.Choice(["float32", "float64"]),
     default="float32",
@@ -672,6 +745,10 @@ def cli(
     diffmah_pattern: str | None,
     diffmah_fields: str,
     diffmah_host_fields: str,
+    diffmah_fit: bool,
+    diffmah_workers: int,
+    diffmah_fit_maxiter: int,
+    diffmah_fit_batch: int,
     diffmah_dtype: str,
     compression_level: int,
     ncorechunks: int,
@@ -679,9 +756,15 @@ def cli(
 ):
     diffmah_fields = [k for k in diffmah_fields.split(",") if k]
     diffmah_host_fields = [k for k in diffmah_host_fields.split(",") if k]
-    if diffmah_pattern is None:
+    if diffmah_pattern is not None and diffmah_fit:
+        raise click.BadParameter("--diffmah-pattern and --diffmah-fit are exclusive")
+    if diffmah_pattern is None and not diffmah_fit:
         diffmah_fields = []
         diffmah_host_fields = []
+    if diffmah_fit and "fit_flag" not in diffmah_fields:
+        diffmah_fields.append("fit_flag")
+    if diffmah_workers <= 0:
+        diffmah_workers = int(os.environ.get("OMP_NUM_THREADS", "1"))
     if diffmah_pattern is not None and "#" not in diffmah_pattern:
         raise click.BadParameter(
             "--diffmah-pattern needs a '#' placeholder for the coreforest file index"
@@ -724,6 +807,10 @@ def cli(
         diffmah_pattern=diffmah_pattern,
         diffmah_fields=diffmah_fields,
         diffmah_dtype=diffmah_dtype,
+        diffmah_fit=diffmah_fit,
+        diffmah_workers=diffmah_workers,
+        diffmah_fit_maxiter=diffmah_fit_maxiter,
+        diffmah_fit_batch=diffmah_fit_batch,
         nchunks=ncorechunks,
         dbg_nfiles=dbg_ncorefiles,
     )

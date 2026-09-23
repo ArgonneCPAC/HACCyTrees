@@ -8,6 +8,7 @@ authors = ["Michael Buehlmann <buehlmann.michi@gmail.com>"]
 haccytrees-convert = "haccytrees.scripts.treenodes2forest:cli"
 reorganize-coreproperties = "haccytrees.scripts.reorganize_coreproperties:cli"
 intersect-cores-with-lightcone = "haccytrees.scripts.intersect_cores_with_lightcone:cli"
+haccytrees-diffmah-fit = "haccytrees.scripts.fit_coreforest_diffmah:cli"
 
 [tool.poetry.dependencies]
 python = ">=3.10.0,<3.14"
@@ -29,6 +30,17 @@ optional = true
 [tool.poetry.group.assemble.dependencies]
 pygio = { git = "https://git.cels.anl.gov/hacc/genericio.git" }
 mpipartition = "^1.5.0"
+
+[tool.poetry.group.diffmah]
+optional = true
+
+[tool.poetry.group.diffmah.dependencies]
+# batched diffmah fitter (haccytrees.diffmah): install jax with the platform extra for your
+# accelerator (jax[cuda12], jax[rocm7-local], or jax 0.5.0 + intel-extension-for-openxla)
+jax = ">=0.5.0"
+optax = ">=0.2.4"
+diffmah = ">=0.7.3"
+dsps = { version = ">=0.4", optional = true }
 
 [tool.poetry.group.docs]
 optional = true
