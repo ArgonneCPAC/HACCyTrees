@@ -971,15 +971,19 @@ def cli(
         partition_cube.comm.Barrier()
         if partition_cube.rank == 0:
             print(" - calculate angular coordinates", flush=True)
-        # Calculate angular lightcone coordinates
-        # theta between [0, pi], phi between [0, 2pi]
+        # Calculate angular lightcone coordinates: the usual spherical convention,
+        # theta = polar angle from +z in [0, pi], phi = azimuth from +x in [0, 2pi)
+        # (phi = mod(arctan2(y, x), 2pi), as diffsky's lightcone_utils). Earlier versions
+        # added pi instead, which rotated phi by 180 degrees.
         r = np.sqrt(np.sum([cores_step[x] ** 2 for x in "xyz"], axis=0))
         rhost = np.sqrt(np.sum([cores_step[f"host_{x}"] ** 2 for x in "xyz"], axis=0))
         cores_step["theta"] = np.arccos(cores_step["z"] / r)
-        cores_step["phi"] = np.arctan2(cores_step["y"], cores_step["x"]) + np.pi
+        cores_step["phi"] = np.mod(
+            np.arctan2(cores_step["y"], cores_step["x"]), 2 * np.pi
+        )
         cores_step["host_theta"] = np.arccos(cores_step["host_z"] / rhost)
-        cores_step["host_phi"] = (
-            np.arctan2(cores_step["host_y"], cores_step["host_x"]) + np.pi
+        cores_step["host_phi"] = np.mod(
+            np.arctan2(cores_step["host_y"], cores_step["host_x"]), 2 * np.pi
         )
         cores_step["scale_factor"] = halo_lc["a"][lc_index]
 
@@ -992,7 +996,7 @@ def cli(
         assert np.all(cores_step["host_phi"] >= 0)
         assert np.all(cores_step["host_phi"] <= 2 * np.pi)
 
-        # if phi is 2pi, set it to 0
+        # float rounding can land exactly on 2pi; the partition wants [0, 2pi)
         cores_step["phi"] = np.fmod(cores_step["phi"], 2 * np.pi)
         cores_step["host_phi"] = np.fmod(cores_step["host_phi"], 2 * np.pi)
 
