@@ -133,6 +133,16 @@ def get_infall_time_indices(
     return indx_t_ult_inf, indx_t_pen_inf
 
 
+def step_output_base(output_base, step: int, step_subdirs: bool) -> Path:
+    """Base path of the files of one step: ``<dir>/step_<step>/<name>`` with
+    per-step directories, ``<dir>/<name>`` for the flat layout. The file of a rank
+    is ``<base>-<step>.<rank>.hdf5`` in both layouts."""
+    output_base = Path(output_base)
+    if not step_subdirs:
+        return output_base
+    return output_base.parent / f"step_{step}" / output_base.name
+
+
 def create_dataset(group, name: str, data: np.ndarray, compression_level: int):
     """gzip-compressed (with byte shuffle) chunked dataset; level 0 writes it plain.
     Empty datasets cannot be chunked and are always written plain."""
@@ -744,6 +754,14 @@ def distribute_cores_at_step(
     "the per-rank memory is set by ceil(nfiles*ncorechunks/nranks)/ncorechunks files",
 )
 @click.option(
+    "--step-subdirs/--flat-output",
+    default=True,
+    show_default=True,
+    help="write the files of each step into their own directory, "
+    "<dir>/step_<step>/<name>-<step>.<rank>.hdf5, instead of one flat directory "
+    "<dir>/<name>-<step>.<rank>.hdf5 (nsteps*nranks files)",
+)
+@click.option(
     "--dbg-ncorefiles",
     type=int,
 )
@@ -762,6 +780,7 @@ def cli(
     diffmah_dtype: str,
     compression_level: int,
     ncorechunks: int,
+    step_subdirs: bool,
     dbg_ncorefiles: int | None,
 ):
     diffmah_fields = [k for k in diffmah_fields.split(",") if k]
@@ -824,6 +843,15 @@ def cli(
         nchunks=ncorechunks,
         dbg_nfiles=dbg_ncorefiles,
     )
+
+    # One output directory per step, created once by rank 0
+    if step_subdirs:
+        if partition_cube.rank == 0:
+            for step in timesteps:
+                step_output_base(output_base, step, True).parent.mkdir(
+                    parents=True, exist_ok=True
+                )
+        partition_cube.comm.Barrier()
 
     # Forward iterate over lightcone outputs
     for step, snap_num in zip(timesteps, snapnums):
@@ -1112,7 +1140,10 @@ def cli(
         cores_step["lc_halo_theta"] = cores_step.pop("host_theta")
         cores_step["lc_halo_foftag"] = cores_step.pop("fof_halo_tag_clean")
         # Write cores to file
-        output_file = str(output_base) + f"-{step}.{partition_cube.rank}.hdf5"
+        output_file = (
+            str(step_output_base(output_base, step, step_subdirs))
+            + f"-{step}.{partition_cube.rank}.hdf5"
+        )
         output_fields = core_fields + [
             "coreforest_file_idx",
             "coreforest_row_idx",
