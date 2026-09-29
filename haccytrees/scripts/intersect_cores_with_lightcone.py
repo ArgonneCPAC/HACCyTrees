@@ -56,6 +56,20 @@ DEFAULT_DIFFMAH_FIELDS = [
 DEFAULT_DIFFMAH_HOST_FIELDS = ["early_index", "late_index", "logm0", "logtc", "t_peak"]
 DIFFMAH_MISSING = -99
 
+# peak mass history, the running maximum of PEAK_MASS_SOURCE along the snapshot axis
+# (same definition as diffsky's get_diffsky_quantities_for_lc_patch, coreforest units):
+# mp_obs at the lightcone step, mp0 at the last snapshot
+PEAK_MASS_SOURCE = "infall_tree_node_mass"
+PEAK_MASS_FIELDS = ["mp_obs", "mp0"]
+
+
+def peak_mass_fields(mass: np.ndarray) -> dict[str, np.ndarray]:
+    """mp_obs (per snapshot, sliced at the lightcone step later) and mp0 (per core)
+    from the (ncores, nsnapshots) mass matrix, which is overwritten"""
+    mpeak = np.maximum.accumulate(mass, axis=1, out=mass)
+    return {"mp_obs": mpeak, "mp0": mpeak[:, -1].copy()}
+
+
 # matrix-row references into the coreforest matrix (chunk-local when read, made
 # rank-local when chunks are concatenated in read_corematrix)
 host_row_fields = ["host_row", "top_host_row", "secondary_top_host_row"]
@@ -263,6 +277,7 @@ def read_corematrix(
     diffmah_fit_maxiter: int = 100,
     diffmah_fit_batch: int = 256,
     nchunks: int = 8,
+    peak_mass: bool = True,
     dbg_nfiles: int | None = None,
 ) -> dict[str, np.ndarray]:
     if diffmah_fit:
@@ -296,7 +311,10 @@ def read_corematrix(
         include_fields = core_fields + [
             k for k in top_host_core_fields if k in available
         ]
-        if diffmah_fit:
+        if peak_mass and PEAK_MASS_SOURCE not in available:
+            print(f"Coreforest has no {PEAK_MASS_SOURCE}, skipping mp_obs/mp0")
+            peak_mass = False
+        if diffmah_fit or peak_mass:
             include_fields.append("infall_tree_node_mass")
         missing = [k for k in top_host_core_fields if k not in available]
         if missing:
@@ -304,8 +322,10 @@ def read_corematrix(
     else:
         number_of_core_files = None
         include_fields = None
+        peak_mass = None
     number_of_core_files = partition_cube.comm.bcast(number_of_core_files, root=0)
     include_fields = partition_cube.comm.bcast(include_fields, root=0)
+    peak_mass = partition_cube.comm.bcast(peak_mass, root=0)
 
     if dbg_nfiles is not None:
         number_of_core_files = dbg_nfiles
@@ -344,13 +364,16 @@ def read_corematrix(
             corematrix["secondary_top_host_tag"] = np.empty(
                 (0, corematrix["x"].shape[1]), dtype=np.int64
             )
+            if "infall_tree_node_mass" in corematrix:
+                _mass = corematrix.pop("infall_tree_node_mass")
+                if peak_mass:
+                    corematrix.update(peak_mass_fields(_mass))
             if diffmah_pattern is not None:
                 for k, v in read_diffmah_rows(
                     diffmah_pattern, 0, 0, 1, diffmah_fields, diffmah_dtype
                 ).items():
                     corematrix[k] = np.empty((0,), dtype=v.dtype)
             elif diffmah_fit:
-                corematrix.pop("infall_tree_node_mass")
                 for k in diffmah_fields:
                     corematrix[k] = np.empty(
                         (0,), dtype=diffmah_storage_dtype(k, diffmah_dtype)
@@ -406,13 +429,18 @@ def read_corematrix(
                 )
         elif diffmah_fit:
             _mahs = mah_from_mass(
-                _corematrix.pop("infall_tree_node_mass"), config.simulation.cosmo.h
+                _corematrix["infall_tree_node_mass"], config.simulation.cosmo.h
             )
             _res = fit_mahs_parallel(_tarr, _mahs, _cfg, diffmah_workers)
             del _mahs
             _corematrix.update(
                 cast_diffmah_results(_res, diffmah_fields, diffmah_dtype)
             )
+        if "infall_tree_node_mass" in _corematrix:
+            _mass = _corematrix.pop("infall_tree_node_mass")
+            if peak_mass:
+                _corematrix.update(peak_mass_fields(_mass))
+            del _mass
         _corematrix["coreforest_row_idx"] = np.tile(
             _corematrix["coreforest_row_idx"].reshape(-1, 1),
             (1, _corematrix["x"].shape[1]),
@@ -754,6 +782,13 @@ def distribute_cores_at_step(
     "the per-rank memory is set by ceil(nfiles*ncorechunks/nranks)/ncorechunks files",
 )
 @click.option(
+    "--peak-mass/--no-peak-mass",
+    default=True,
+    show_default=True,
+    help="add mp_obs and mp0, the running maximum of infall_tree_node_mass at the "
+    "lightcone step and at the last snapshot (coreforest mass units)",
+)
+@click.option(
     "--step-subdirs/--flat-output",
     default=True,
     show_default=True,
@@ -780,6 +815,7 @@ def cli(
     diffmah_dtype: str,
     compression_level: int,
     ncorechunks: int,
+    peak_mass: bool,
     step_subdirs: bool,
     dbg_ncorefiles: int | None,
 ):
@@ -841,6 +877,7 @@ def cli(
         diffmah_fit_maxiter=diffmah_fit_maxiter,
         diffmah_fit_batch=diffmah_fit_batch,
         nchunks=ncorechunks,
+        peak_mass=peak_mass,
         dbg_nfiles=dbg_ncorefiles,
     )
 
@@ -1178,6 +1215,7 @@ def cli(
             if f"top_host_{k}" in cores_step
         ]
         output_fields += ["indx_t_ult_inf", "indx_t_pen_inf"]
+        output_fields += [k for k in PEAK_MASS_FIELDS if k in cores_step]
         with h5py.File(output_file, "w") as f:
             f.attrs["snapnum"] = snap_num
             f.attrs["theta_extent"] = partition_s2.theta_extent
