@@ -93,6 +93,13 @@ def get_infall_time_indices(
     column indices into the coreforest snapshot axis (the simulation's cosmotools
     steps). Note that the penultimate-host search runs over all columns, as in
     diffsky, and argmax returns 0 when no column matches.
+
+    The same holds for the ultimate host: the search compares `host_row` (the direct
+    host) with the top host at `iz`. A core that entered its ultimate host inside
+    another host (a satellite of a satellite) keeps that intermediate host as its
+    `host_row`, so no column matches and `indx_t_ult_inf` is 0. This value cannot be
+    told apart from a real infall at column 0. It is kept as is to stay identical to
+    diffsky.
     """
     _X = top_host_row
     M_ult_host = host_row == _X[:, iz].reshape((-1, 1))
