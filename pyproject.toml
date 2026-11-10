@@ -30,6 +30,8 @@ optional = true
 [tool.poetry.group.assemble.dependencies]
 pygio = { git = "https://git.cels.anl.gov/hacc/genericio.git" }
 mpipartition = "^1.5.0"
+# Blosc2 compression of the forest ([output] compression = "blosc2-zstd"); readers need it too
+hdf5plugin = ">=5.0.0"
 
 [tool.poetry.group.diffmah]
 optional = true

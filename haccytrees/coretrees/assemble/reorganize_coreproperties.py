@@ -11,6 +11,7 @@ from ...simulations import Simulation
 from .coretrees_assembly_config import CoretreesAssemblyConfig
 from ...utils.datastores import NumpyStore
 from ...utils.timer import Timer
+from ...utils.hdf5_utils import create_dataset, COMPRESSION_CHOICES
 
 
 def _read_data(
@@ -138,6 +139,12 @@ def reorganize_coreproperties(
         partition.comm.Barrier()
         if partition.rank == 0:
             print(x, flush=True, **kwargs)
+
+    if config.compression not in COMPRESSION_CHOICES:
+        raise ValueError(
+            f"[output] compression = {config.compression!r}, use one of {COMPRESSION_CHOICES}"
+        )
+    comp = dict(method=config.compression, level=config.compression_level)
 
     read_fields = [k1 for k1, k2 in config.copy_fields]
     xyz_fields = [
@@ -323,7 +330,7 @@ def reorganize_coreproperties(
                     mask[_idx] = True
                     data[_idx] = _d[kin]
                 assert np.all(mask)
-                g_data.create_dataset(kout, data=data)
+                create_dataset(g_data, kout, data, **comp)
 
             data = np.empty(np.sum(owned_core_tags_length), dtype=np.int16)
 
@@ -333,10 +340,10 @@ def reorganize_coreproperties(
                 _idx = own_core_offsets[_d["assign_idx"]] + i
                 assert np.all(_idx < own_core_offsets[_d["assign_idx"] + 1])
                 data[_idx] = snapnum
-            g_data.create_dataset("snapnum", data=data)
+            create_dataset(g_data, "snapnum", data, **comp)
 
             g_idx = f.create_group("index")
-            g_idx.create_dataset("root_idx", data=own_core_offsets[root_idx])
+            create_dataset(g_idx, "root_idx", own_core_offsets[root_idx], **comp)
 
     with Timer("cleanup", logger=logger):
         for i, snapnum in enumerate(range(len(steps) - 1, -1, -1)):

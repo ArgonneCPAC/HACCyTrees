@@ -19,6 +19,11 @@ class CoretreesAssemblyConfig:
     copy_fields: List[Tuple[str]] = field(default_factory=list)
     verbose: int = 0
 
+    # compression of the forest datasets (haccytrees.utils.hdf5_utils): "none" (default,
+    # as before), "gzip", "blosc2-zstd" or "blosc2-lz4"
+    compression: str = "none"
+    compression_level: int = 1
+
     @classmethod
     def parse_config(cls, config_path: str) -> "CoretreesAssemblyConfig":
         with open(config_path, "rb") as fp:
@@ -39,4 +44,6 @@ class CoretreesAssemblyConfig:
             node_position_z=config["columns"]["node_position_z"],
             copy_fields=config["output"]["copy_fields"],
             verbose=config["algorithm"]["verbose"],
+            compression=config["output"].get("compression", "none"),
+            compression_level=int(config["output"].get("compression_level", 1)),
         )
