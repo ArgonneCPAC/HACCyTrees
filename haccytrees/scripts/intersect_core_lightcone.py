@@ -195,6 +195,10 @@ def read_forest(comm, config, forest_base: Path, *, col0: int, ncorechunks: int,
             FitConfig, cosmic_time, default_cpu_config, fit_mahs, fit_mahs_parallel,
             mah_from_mass,
         )
+        if diffmah_device == "cpu":
+            # the fits run in CPU worker processes; cosmic_time initializes JAX in this
+            # process when dsps is installed: keep the MPI ranks off the GPUs for that
+            os.environ.setdefault("JAX_PLATFORMS", "cpu")
         tarr = cosmic_time(sim)
         if diffmah_device == "gpu":
             cfg = FitConfig(dtype="float64", maxiter=diffmah_maxiter, batch=diffmah_batch)
