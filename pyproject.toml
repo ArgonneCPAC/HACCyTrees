@@ -9,6 +9,7 @@ haccytrees-convert = "haccytrees.scripts.treenodes2forest:cli"
 reorganize-coreproperties = "haccytrees.scripts.reorganize_coreproperties:cli"
 intersect-cores-with-lightcone = "haccytrees.scripts.intersect_cores_with_lightcone:cli"
 haccytrees-diffmah-fit = "haccytrees.scripts.fit_coreforest_diffmah:cli"
+intersect-core-lightcone = "haccytrees.scripts.intersect_core_lightcone:cli"
 
 [tool.poetry.dependencies]
 python = ">=3.10.0,<3.14"
