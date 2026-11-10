@@ -314,33 +314,43 @@ def reorganize_coreproperties(
 
     with Timer(name="write hdf5", logger=logger):
         own_core_offsets = np.insert(np.cumsum(owned_core_tags_length), 0, 0)
+        nrows = int(np.sum(owned_core_tags_length))
+        # output row of every stored entry, per step: computed once (the temporary store
+        # is read once per field and step below, assign_idx only here)
+        with Timer(name="write hdf5: row indices", logger=None):
+            step_idx = []
+            mask = np.zeros(nrows, dtype=np.bool_)
+            for i, snapnum in enumerate(range(len(steps) - 1, -1, -1)):
+                step = steps[snapnum]
+                _assign = np.asarray(npstore[step]["assign_idx"])
+                _idx = own_core_offsets[_assign] + i
+                assert np.all(_idx < own_core_offsets[_assign + 1])
+                assert np.all(~mask[_idx])
+                mask[_idx] = True
+                step_idx.append(_idx)
+                del _assign
+            assert np.all(mask)
+            del mask
+        logger(f"write hdf5: {nrows} rows on rank 0, row indices done")
         with h5py.File(f"{config.output_base}.{partition.rank}.hdf5", "w") as f:
             g_data = f.create_group("data")
             for kin, kout in config.copy_fields:
-                data = np.empty(
-                    np.sum(owned_core_tags_length), dtype=tracked_dtypes[kin]
-                )
-                mask = np.zeros_like(data, dtype=np.bool_)
+                t0 = MPI.Wtime()
+                data = np.empty(nrows, dtype=tracked_dtypes[kin])
                 for i, snapnum in enumerate(range(len(steps) - 1, -1, -1)):
-                    step = steps[snapnum]
-                    _d = npstore[step]
-                    _idx = own_core_offsets[_d["assign_idx"]] + i
-                    assert np.all(_idx < own_core_offsets[_d["assign_idx"] + 1])
-                    assert np.all(~mask[_idx])
-                    mask[_idx] = True
-                    data[_idx] = _d[kin]
-                assert np.all(mask)
+                    data[step_idx[i]] = npstore[steps[snapnum]][kin]
+                t1 = MPI.Wtime()
                 create_dataset(g_data, kout, data, **comp)
+                del data
+                t2 = MPI.Wtime()
+                if partition.rank == 0 and config.verbose:
+                    print(f"  {kout}: gather {t1 - t0:.1f} s, write {t2 - t1:.1f} s", flush=True)
 
-            data = np.empty(np.sum(owned_core_tags_length), dtype=np.int16)
-
+            data = np.empty(nrows, dtype=np.int16)
             for i, snapnum in enumerate(range(len(steps) - 1, -1, -1)):
-                step = steps[snapnum]
-                _d = npstore[step]
-                _idx = own_core_offsets[_d["assign_idx"]] + i
-                assert np.all(_idx < own_core_offsets[_d["assign_idx"] + 1])
-                data[_idx] = snapnum
+                data[step_idx[i]] = snapnum
             create_dataset(g_data, "snapnum", data, **comp)
+            del data, step_idx
 
             g_idx = f.create_group("index")
             create_dataset(g_idx, "root_idx", own_core_offsets[root_idx], **comp)
