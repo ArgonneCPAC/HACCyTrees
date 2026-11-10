@@ -1151,6 +1151,9 @@ def cli(
             f.attrs["snapnum"] = snap_num
             f.attrs["theta_extent"] = partition_s2.theta_extent
             f.attrs["phi_extent"] = partition_s2.phi_extent
+            # files written before the change to the standard azimuth (phi measured
+            # from -x, i.e. shifted by pi) do not have this attribute
+            f.attrs["phi_convention"] = "arctan2(y, x) mod 2pi"
             grp = f.create_group("data")
             for k in output_fields:
                 create_dataset(grp, k, cores_step[k], compression_level)
