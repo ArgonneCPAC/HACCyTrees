@@ -36,14 +36,17 @@ from haccytrees.diffmah import (
 
 
 def _auto_rank():
+    """(rank, size) from the first launcher that sets both variables, so that the rank
+    of one launcher is never paired with the size of another; (0, 1) without a launcher"""
     env = os.environ
-    rank = int(
-        env.get("PMI_RANK", env.get("PALS_RANKID", env.get("SLURM_PROCID", "0")))
-    )
-    size = int(
-        env.get("PMI_SIZE", env.get("PALS_LOCAL_SIZE", env.get("SLURM_NTASKS", "1")))
-    )
-    return rank, size
+    for rank_key, size_key in (
+        ("PMI_RANK", "PMI_SIZE"),
+        ("PALS_RANKID", "PALS_LOCAL_SIZE"),
+        ("SLURM_PROCID", "SLURM_NTASKS"),
+    ):
+        if rank_key in env and size_key in env:
+            return int(env[rank_key]), int(env[size_key])
+    return 0, 1
 
 
 def _parse_subvols(spec: str, nfiles: int) -> list[int]:
@@ -123,8 +126,8 @@ def cli(
         if simulation in Simulation.simulations
         else Simulation.parse_config(simulation)
     )
-    tarr = cosmic_time(sim)
     if device == "cpu":
+        # before cosmic_time, which initializes JAX in this process when dsps is installed
         set_env(cpu_environment())
         cfg = default_cpu_config(
             dtype=dtype,
@@ -133,9 +136,17 @@ def cli(
         )
     else:
         cfg = FitConfig(dtype=dtype, maxiter=maxiter or 300, batch=batch or 65536)
+    tarr = cosmic_time(sim)
     r0, n0 = _auto_rank()
     rank = r0 if rank is None else rank
     nranks = n0 if nranks is None else nranks
+    if not 0 <= rank < nranks:
+        # e.g. a global rank paired with a per-node size: several processes would then
+        # fit the same subvolumes and write the same files
+        raise click.UsageError(
+            f"rank {rank} is not in [0, {nranks}): the launcher's rank and size variables "
+            "do not match, pass --rank and --nranks explicitly"
+        )
 
     nfiles = 0
     while Path(f"{forest_base}.{nfiles}.hdf5").exists():

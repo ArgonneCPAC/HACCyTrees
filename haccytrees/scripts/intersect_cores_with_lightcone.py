@@ -264,6 +264,9 @@ def read_corematrix(
             mah_from_mass,
         )
 
+        # the fits run in CPU worker processes. cosmic_time initializes JAX in this
+        # process when dsps is installed: keep the MPI ranks off the GPUs for that
+        os.environ.setdefault("JAX_PLATFORMS", "cpu")
         _tarr = cosmic_time(config.simulation)
         _cfg = default_cpu_config(
             dtype="float64", maxiter=diffmah_fit_maxiter, batch=diffmah_fit_batch
