@@ -1,3 +1,4 @@
+import resource
 from typing import Callable, List
 
 import h5py
@@ -123,6 +124,22 @@ def _sort_core_roots(coretag, hosttag, foftag, central, extensive_asserts=True):
     return s_fof[s], host_idx[s], group_count[s]
 
 
+def _log_memory(partition: Partition, logger: Callable) -> None:
+    """Largest resident set of a rank and smallest MemAvailable of a node, in GB."""
+    rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024**2
+    avail = np.inf
+    try:
+        with open("/proc/meminfo") as f:
+            for line in f:
+                if line.startswith("MemAvailable:"):
+                    avail = int(line.split()[1]) / 1024**2
+    except OSError:
+        pass
+    rss_max = partition.comm.allreduce(rss, op=MPI.MAX)
+    avail_min = partition.comm.allreduce(avail, op=MPI.MIN)
+    logger(f"memory: max rank peak RSS {rss_max:.1f} GB, min node MemAvailable {avail_min:.1f} GB")
+
+
 def reorganize_coreproperties(
     partition: Partition,
     config: CoretreesAssemblyConfig,
@@ -217,7 +234,12 @@ def reorganize_coreproperties(
         owned_core_tags_sorted = owned_core_tags[owned_core_tags_order_idx]
 
     with Timer("temp storage", logger=logger):
-        npstore = NumpyStore(partition, temporary_path=f"{config.temporary_path}/tmp")
+        # temporary_path = "memory": keep the per-step data in memory (the write phase reads
+        # every field of every step once more, which is slow on a network file system)
+        if config.temporary_path == "memory":
+            npstore = NumpyStore(partition, temporary_path=None)
+        else:
+            npstore = NumpyStore(partition, temporary_path=f"{config.temporary_path}/tmp")
 
         coreprops["assign_idx"] = np.arange(owned_core_tags_count)
         npstore[step] = coreprops
@@ -299,6 +321,8 @@ def reorganize_coreproperties(
         with Timer("temp storage", logger=logger):
             coreprops["assign_idx"] = assign_idx
             npstore[step] = coreprops
+        if config.verbose:
+            _log_memory(partition, logger)
 
     if config.verbose:
         oct_global = partition.comm.gather(owned_core_tags_count, root=0)

@@ -10,6 +10,7 @@ class CoretreesAssemblyConfig:
     input_base: str
     output_base: str
     split_output: bool = True
+    # base path of the per-rank temporary files, or "memory" to keep them in memory
     temporary_path: str = "./tmp"
 
     node_position_x: str = "fof_halo_center_x"
