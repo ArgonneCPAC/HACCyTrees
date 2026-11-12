@@ -1,6 +1,7 @@
 from typing import Mapping, Union, List, Optional
 
 import h5py
+import hdf5plugin  # noqa: F401  registers the Blosc2 filter of compressed coreforests
 import numba
 import numpy as np
 
