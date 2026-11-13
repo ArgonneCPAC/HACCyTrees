@@ -37,6 +37,7 @@ octant index 0..7).
 
 from __future__ import annotations
 
+import faulthandler
 import json
 import os
 import time
@@ -446,9 +447,12 @@ def write_step_file(path: str, cores: dict, fields: list[str], attrs: dict,
 @click.option("--diffmah-dtype", type=click.Choice(["float32", "float64"]), default="float32", show_default=True)
 @click.option("--compression", type=click.Choice(COMPRESSION_CHOICES), default="blosc2-zstd", show_default=True)
 @click.option("--compression-level", type=int, default=1, show_default=True)
+@click.option("--step-watchdog", type=float, default=1200, show_default=True,
+              help="seconds; a rank whose lightcone step takes longer prints the stacks of its "
+                   "threads and exits, which ends the run (0: off)")
 def cli(config_file, core_lightcone_pattern, timestep_file, output_base, ncorechunks,
         forest_files, nwriters, diffmah_fit, diffmah_device, diffmah_workers, diffmah_maxiter,
-        diffmah_batch, diffmah_dtype, compression, compression_level):
+        diffmah_batch, diffmah_dtype, compression, compression_level, step_watchdog):
     from mpipartition import S2Partition, s2_distribute
 
     comm = MPI.COMM_WORLD
@@ -515,6 +519,10 @@ def cli(config_file, core_lightcone_pattern, timestep_file, output_base, ncorech
     stats = []
     for step, col in zip(lc_steps, cols):
         t0 = time.time()
+        if step_watchdog > 0:
+            # a hung collective (the 6144-rank run 9080278 stopped in its first step without an
+            # error) shows where every rank waits, and ends the run instead of the walltime
+            faulthandler.dump_traceback_later(step_watchdog, exit=True)
         path = core_lightcone_pattern.replace("#", str(step))
         lc = read_lightcone_step(path)
         n_lc = comm.allreduce(len(lc["core_tag"]))
@@ -601,6 +609,7 @@ def cli(config_file, core_lightcone_pattern, timestep_file, output_base, ncorech
         stats.append(rec)
         if comm.rank == 0:
             print(json.dumps(rec), flush=True)
+    faulthandler.cancel_dump_traceback_later()
     if comm.rank == 0:
         with open(f"{output_base}-stats.json", "w") as f:
             json.dump(stats, f, indent=1)
