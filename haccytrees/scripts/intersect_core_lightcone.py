@@ -450,9 +450,13 @@ def write_step_file(path: str, cores: dict, fields: list[str], attrs: dict,
 @click.option("--step-watchdog", type=float, default=1200, show_default=True,
               help="seconds; a rank whose lightcone step takes longer prints the stacks of its "
                    "threads and exits, which ends the run (0: off)")
+@click.option("--read-watchdog", type=float, default=1800, show_default=True,
+              help="seconds; the same for the forest read, the diffmah fits and the directory "
+                   "(0: off)")
 def cli(config_file, core_lightcone_pattern, timestep_file, output_base, ncorechunks,
         forest_files, nwriters, diffmah_fit, diffmah_device, diffmah_workers, diffmah_maxiter,
-        diffmah_batch, diffmah_dtype, compression, compression_level, step_watchdog):
+        diffmah_batch, diffmah_dtype, compression, compression_level, step_watchdog,
+        read_watchdog):
     from mpipartition import S2Partition, s2_distribute
 
     comm = MPI.COMM_WORLD
@@ -488,12 +492,16 @@ def cli(config_file, core_lightcone_pattern, timestep_file, output_base, ncorech
               f"forest columns {col0}..{max(cols)} of {len(sim.cosmotools_steps)}, "
               f"{len(files)} of {nfiles} forest files, {nwriters} writers", flush=True)
 
+    if read_watchdog > 0:
+        # attempt 3 of job 9086927 stopped in the collectives at the end of the forest read
+        faulthandler.dump_traceback_later(read_watchdog, exit=True)
     forest = read_forest(comm, config, forest_base, col0=col0, ncorechunks=ncorechunks,
                          diffmah_fields=diffmah_fields, diffmah_dtype=diffmah_dtype,
                          diffmah_device=diffmah_device, diffmah_workers=diffmah_workers,
                          diffmah_maxiter=maxiter, diffmah_batch=batch, files=files)
     directory = build_directory(comm, forest)
     log(comm, "directory built")
+    faulthandler.cancel_dump_traceback_later()
 
     s2 = S2Partition()
     writer_of = (np.arange(comm.size) * nwriters) // comm.size  # writer index of each rank
