@@ -447,9 +447,12 @@ def angles(x, y, z):
 
 
 def group_centrals(cores):
-    """sort by (unique_id, central first, most massive first); per group the first core is the
-    reference (lc_halo_*), and lc_fof_halo_flag marks groups without a central"""
-    s = np.lexsort((-cores["mp_obs"].astype(np.float64), 1 - cores["central"], cores["unique_id"]))
+    """sort by (unique_id, central first, most massive first, smallest core_tag); per group the
+    first core is the reference (lc_halo_*), and lc_fof_halo_flag marks groups without a central.
+    core_tag breaks ties of mass (small halos have equal particle counts), so the reference does
+    not depend on the order in which the rows arrived"""
+    s = np.lexsort((cores["core_tag"], -cores["mp_obs"].astype(np.float64), 1 - cores["central"],
+                    cores["unique_id"]))
     cores = {k: v[s] for k, v in cores.items()}
     uid, first, count = np.unique(cores["unique_id"], return_index=True, return_counts=True)
     ref = np.repeat(first, count)
