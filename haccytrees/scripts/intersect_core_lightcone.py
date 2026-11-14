@@ -128,33 +128,117 @@ def hash_rank(keys: np.ndarray, nranks: int) -> np.ndarray:
     return (splitmix64(keys) % np.uint64(nranks)).astype(np.int64)
 
 
+# exchange_by_dest settings (set by the command line): rounds in flight, and the seconds after
+# which a rank that still waits prints the partners it waits for
+EXCHANGE = {"window": 8, "report_s": 300.0}
+_exchange_state = {"seq": 0, "hosts": None}
+
+
+def gather_rank_hosts(comm) -> list:
+    """node name of every rank, for the exchange_by_dest report; call it once on all ranks"""
+    if _exchange_state["hosts"] is None:
+        _exchange_state["hosts"] = comm.allgather(MPI.Get_processor_name().split(".")[0])
+    return _exchange_state["hosts"]
+
+
 def exchange_by_dest(comm, data: dict, dest: np.ndarray) -> dict:
-    """send row i of every array in data to rank dest[i] (Alltoallv per field)"""
+    """send row i of every array in data to rank dest[i]
+
+    The fields of a row are packed into one record, and the records travel in a shifted
+    pairwise schedule of point-to-point messages: in round i a rank receives from rank - i and
+    sends to rank + i, with EXCHANGE["window"] rounds in flight, and only pairs with rows
+    exchange a message. This replaced one MPI_Alltoallv per field, which hung in exchange 2 of
+    the first lightcone step at 6144 ranks (job 9086927). A rank that still waits after
+    EXCHANGE["report_s"] seconds prints the partner ranks and nodes it waits for.
+    Received rows are ordered by source rank, each source's rows in their original order.
+    """
     n = len(dest)
-    for k, v in data.items():
-        assert len(v) == n, (k, len(v), n)
+    keys = sorted(data)
+    for k in keys:
+        assert len(data[k]) == n, (k, len(data[k]), n)
+    size, rank = comm.size, comm.rank
+    dest = np.asarray(dest, dtype=np.int64)
     order = np.argsort(dest, kind="stable")
-    scount = np.bincount(dest, minlength=comm.size).astype(np.int64)
+    scount = np.bincount(dest, minlength=size).astype(np.int64)
+    assert len(scount) == size, "destination rank out of range"
     rcount = np.empty_like(scount)
     comm.Alltoall(scount, rcount)
-    sdispl = np.insert(np.cumsum(scount), 0, 0)[:-1]
-    rdispl = np.insert(np.cumsum(rcount), 0, 0)[:-1]
-    nrecv = int(rcount.sum())
-    out = {}
-    for k in sorted(data):
-        v = np.ascontiguousarray(data[k][order])
-        dt = v.dtype
-        rbuf = np.empty(nrecv, dtype=dt)
-        size = dt.itemsize
-        assert (scount.max(initial=0) * size) < 2**31 and (nrecv * size) < 2**31, (
-            "message too large for Alltoallv; use more ranks"
-        )
-        comm.Alltoallv(
-            [v.view(np.uint8), (scount * size).astype(np.int32), (sdispl * size).astype(np.int32), MPI.BYTE],
-            [rbuf.view(np.uint8), (rcount * size).astype(np.int32), (rdispl * size).astype(np.int32), MPI.BYTE],
-        )
-        out[k] = rbuf
-    return out
+    rec = np.dtype([(k, data[k].dtype, data[k].shape[1:]) for k in keys])
+    isz = rec.itemsize
+    assert max(scount.max(initial=0), rcount.max(initial=0)) * isz < 2**31, (
+        "message too large; use more ranks"
+    )
+    send = np.empty(n, dtype=rec)
+    for k in keys:
+        send[k] = data[k][order]
+    recv = np.empty(int(rcount.sum()), dtype=rec)
+    sdispl = np.concatenate([[0], np.cumsum(scount)[:-1]]).astype(np.int64)
+    rdispl = np.concatenate([[0], np.cumsum(rcount)[:-1]]).astype(np.int64)
+    recv[rdispl[rank]:rdispl[rank] + rcount[rank]] = send[sdispl[rank]:sdispl[rank] + scount[rank]]
+    sb, rb = send.view(np.uint8), recv.view(np.uint8)
+    seq = _exchange_state["seq"]
+    _exchange_state["seq"] += 1
+    tag = 1000 + seq % 30000
+    window = max(1, int(EXCHANGE["window"]))
+    t0 = time.time()
+    reported = False
+    for start in range(1, size, window):
+        reqs, what = [], []
+        rounds = range(start, min(start + window, size))
+        for i in rounds:
+            src = (rank - i) % size
+            if rcount[src]:
+                a, b = rdispl[src] * isz, (rdispl[src] + rcount[src]) * isz
+                reqs.append(comm.Irecv([rb[a:b], MPI.BYTE], source=src, tag=tag))
+                what.append(("receive from", src, int(rcount[src])))
+        for i in rounds:
+            dst = (rank + i) % size
+            if scount[dst]:
+                a, b = sdispl[dst] * isz, (sdispl[dst] + scount[dst]) * isz
+                reqs.append(comm.Isend([sb[a:b], MPI.BYTE], dest=dst, tag=tag))
+                what.append(("send to", dst, int(scount[dst])))
+        while not MPI.Request.Testall(reqs):
+            if not reported and time.time() - t0 > EXCHANGE["report_s"]:
+                reported = True
+                hosts = _exchange_state["hosts"]  # gathered at the start (collective)
+                waiting = [w for r, w in zip(reqs, what) if not r.Test()]
+                desc = "; ".join(f"{d} rank {p} ({hosts[p] if hosts else '?'}) {c} rows"
+                                 for d, p, c in waiting[:12])
+                more = f" and {len(waiting) - 12} more" if len(waiting) > 12 else ""
+                me = hosts[rank] if hosts else MPI.Get_processor_name()
+                print(f"exchange {seq}: rank {rank} ({me}) still waits after {time.time() - t0:.0f} s "
+                      f"in rounds {start}..{rounds[-1]} of {size - 1}: {desc}{more}", flush=True)
+    if reported:
+        print(f"exchange {seq}: rank {rank} finished after {time.time() - t0:.0f} s", flush=True)
+    return {k: np.ascontiguousarray(recv[k]) for k in keys}
+
+
+def s2_home_rank(partition, theta: np.ndarray, phi: np.ndarray) -> np.ndarray:
+    """rank of the S2 partition cell of each (theta, phi): the rule of mpipartition 1.5.0's
+    s2_distribute, whose per-field Alltoallv exchange_by_dest replaces"""
+    assert np.all(theta >= 0) and np.all(theta <= np.pi)
+    assert np.all(phi >= 0) and np.all(phi < 2 * np.pi)
+    if partition.nranks == 1:
+        return np.zeros(len(theta), dtype=np.int64)
+    if partition.equal_area:
+        ring_idx = np.digitize(theta, partition.ring_thetas)
+    elif partition.nranks == 2:
+        ring_idx = (theta > partition.theta_cap).astype(np.int32)
+    else:
+        ring_idx = ((theta - partition.theta_cap) // partition.ring_dtheta).astype(np.int32) + 1
+        ring_idx = np.clip(ring_idx, 0, len(partition.ring_segments) + 1)
+        ring_idx[theta == np.pi] -= 1
+    phi_idx = np.zeros_like(ring_idx, dtype=np.int32)
+    on_ring = (ring_idx > 0) & (ring_idx <= len(partition.ring_segments))
+    phi_idx[on_ring] = (
+        phi[on_ring] / (2 * np.pi) * partition.ring_segments[ring_idx[on_ring] - 1]
+    ).astype(np.int32)
+    ring_start = np.zeros(len(partition.ring_segments) + 2, dtype=np.int32)
+    ring_start[1] = 1
+    ring_start[2:] = np.cumsum(partition.ring_segments) + 1
+    home = (ring_start[ring_idx] + phi_idx).astype(np.int64)
+    assert np.all(home >= 0) and np.all(home < partition.nranks)
+    return home
 
 
 def replication_to_octant(code: np.ndarray) -> np.ndarray:
@@ -453,14 +537,20 @@ def write_step_file(path: str, cores: dict, fields: list[str], attrs: dict,
 @click.option("--read-watchdog", type=float, default=1800, show_default=True,
               help="seconds; the same for the forest read, the diffmah fits and the directory "
                    "(0: off)")
+@click.option("--exchange-window", type=click.IntRange(1), default=8, show_default=True,
+              help="rounds of the pairwise exchange in flight")
+@click.option("--exchange-report", type=float, default=300, show_default=True,
+              help="seconds; a rank still waiting in an exchange prints the partners it waits for")
 def cli(config_file, core_lightcone_pattern, timestep_file, output_base, ncorechunks,
         forest_files, nwriters, diffmah_fit, diffmah_device, diffmah_workers, diffmah_maxiter,
         diffmah_batch, diffmah_dtype, compression, compression_level, step_watchdog,
-        read_watchdog):
-    from mpipartition import S2Partition, s2_distribute
+        read_watchdog, exchange_window, exchange_report):
+    from mpipartition import S2Partition
 
     comm = MPI.COMM_WORLD
     t_start = time.time()
+    EXCHANGE.update(window=exchange_window, report_s=exchange_report)
+    gather_rank_hosts(comm)
     config = CoretreesAssemblyConfig.parse_config(str(config_file))
     sim = config.simulation
     ob = Path(config.output_base)
@@ -587,7 +677,7 @@ def cli(config_file, core_lightcone_pattern, timestep_file, output_base, ncorech
         cores = exchange_by_dest(comm, cores, hash_rank(cores["unique_id"], comm.size))
         cores = group_centrals(cores)
         # 4. on the sphere by the group's position, then to the writer
-        cores = s2_distribute(s2, cores, theta_key="lc_halo_theta", phi_key="lc_halo_phi")
+        cores = exchange_by_dest(comm, cores, s2_home_rank(s2, cores["lc_halo_theta"], cores["lc_halo_phi"]))
         cores = exchange_by_dest(comm, cores, np.full(len(cores["x"]), writer_root[my_writer], dtype=np.int64))
         lost = {"top_host_tag": 0, "secondary_top_host_tag": 0}
         n_out = n_groups = n_nocentral = 0
