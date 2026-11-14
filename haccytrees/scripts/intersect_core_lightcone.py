@@ -149,7 +149,10 @@ def gather_rank_hosts(comm) -> list:
 # in the collectives at the end of the forest read until the read watchdog ended the run. A hung
 # Level Zero call cannot be cancelled, so the fit runs in a daemon thread; when it has not
 # returned after DIFFMAH_GPU["timeout_s"], this rank fits that chunk, and all later ones, in CPU
-# worker processes (fit_mahs_parallel, same FitConfig; float64 results agree to about 1e-12).
+# worker processes (fit_mahs_parallel, same FitConfig with batch 256). The fits of a core depend
+# somewhat on the cores that share its batch, so CPU and GPU fits are equivalent, not equal: in
+# job 9088287 logm0 agreed within 0.01 dex for 96% of the CPU-fitted cores, as in the earlier
+# GPU against CPU comparison.
 DIFFMAH_GPU = {"timeout_s": 600.0, "hung": False, "cpu_chunks": 0}
 
 
@@ -330,8 +333,8 @@ def read_forest(comm, config, forest_base: Path, *, col0: int, ncorechunks: int,
         tarr = cosmic_time(sim)
         if diffmah_device == "gpu":
             cfg = FitConfig(dtype="float64", maxiter=diffmah_maxiter, batch=diffmah_batch)
-            # the CPU fallback after a hung GPU fit: the same fit (each core's fit does not
-            # depend on the batch), in the batch size that is fastest on CPUs
+            # the CPU fallback after a hung GPU fit: the same fit, in the batch size that is
+            # fastest on CPUs
             cfg_cpu = dataclasses.replace(cfg, batch=256)
         else:
             cfg = default_cpu_config(dtype="float64", maxiter=diffmah_maxiter, batch=diffmah_batch)
