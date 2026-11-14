@@ -37,9 +37,12 @@ octant index 0..7).
 
 from __future__ import annotations
 
+import dataclasses
 import faulthandler
 import json
 import os
+import sys
+import threading
 import time
 from pathlib import Path
 
@@ -139,6 +142,46 @@ def gather_rank_hosts(comm) -> list:
     if _exchange_state["hosts"] is None:
         _exchange_state["hosts"] = comm.allgather(MPI.Get_processor_name().split(".")[0])
     return _exchange_state["hosts"]
+
+
+# GPU diffmah fits with a deadline. In job 9087866 one of 6144 ranks never returned from a JAX
+# call on its tile (prepare_targets, waiting for the device), and all other ranks waited for it
+# in the collectives at the end of the forest read until the read watchdog ended the run. A hung
+# Level Zero call cannot be cancelled, so the fit runs in a daemon thread; when it has not
+# returned after DIFFMAH_GPU["timeout_s"], this rank fits that chunk, and all later ones, in CPU
+# worker processes (fit_mahs_parallel, same FitConfig; float64 results agree to about 1e-12).
+DIFFMAH_GPU = {"timeout_s": 600.0, "hung": False, "cpu_chunks": 0}
+
+
+def fit_with_deadline(comm, fit_gpu, fit_cpu, label: str):
+    """fit_gpu() in a thread, at most DIFFMAH_GPU["timeout_s"] seconds; fit_cpu() otherwise"""
+    if not DIFFMAH_GPU["hung"]:
+        box = {}
+        test_hang = os.environ.get("INTERSECT_TEST_GPU_HANG") == str(comm.rank)
+
+        def run():
+            try:
+                if test_hang:  # test of the fallback: this rank's GPU fit never returns
+                    time.sleep(1e9)
+                box["res"] = fit_gpu()
+            except BaseException as e:  # noqa: BLE001 (re-raised in the calling thread)
+                box["err"] = e
+
+        th = threading.Thread(target=run, name="diffmah-gpu", daemon=True)
+        th.start()
+        timeout = DIFFMAH_GPU["timeout_s"]
+        th.join(timeout if timeout > 0 else None)
+        if not th.is_alive():
+            if "err" in box:
+                raise box["err"]
+            return box["res"]
+        DIFFMAH_GPU["hung"] = True
+        hosts = _exchange_state["hosts"]
+        host = hosts[comm.rank] if hosts else "?"
+        print(f"rank {comm.rank} ({host}): the GPU diffmah fit of {label} has not returned after "
+              f"{timeout:.0f} s; this rank fits on the CPU from now on", file=sys.stderr, flush=True)
+    DIFFMAH_GPU["cpu_chunks"] += 1
+    return fit_cpu()
 
 
 def exchange_by_dest(comm, data: dict, dest: np.ndarray) -> dict:
@@ -287,6 +330,9 @@ def read_forest(comm, config, forest_base: Path, *, col0: int, ncorechunks: int,
         tarr = cosmic_time(sim)
         if diffmah_device == "gpu":
             cfg = FitConfig(dtype="float64", maxiter=diffmah_maxiter, batch=diffmah_batch)
+            # the CPU fallback after a hung GPU fit: the same fit (each core's fit does not
+            # depend on the batch), in the batch size that is fastest on CPUs
+            cfg_cpu = dataclasses.replace(cfg, batch=256)
         else:
             cfg = default_cpu_config(dtype="float64", maxiter=diffmah_maxiter, batch=diffmah_batch)
         if comm.rank == 0:
@@ -325,7 +371,10 @@ def read_forest(comm, config, forest_base: Path, *, col0: int, ncorechunks: int,
                 from haccytrees.diffmah import empty_results
                 res = empty_results()
             elif diffmah_device == "gpu":
-                res = fit_mahs(tarr, mahs, cfg)
+                res = fit_with_deadline(
+                    comm, lambda: fit_mahs(tarr, mahs, cfg),
+                    lambda: fit_mahs_parallel(tarr, mahs, cfg_cpu, diffmah_workers),
+                    f"forest file {fidx} chunk {chunk} ({n} cores)")
             else:
                 res = fit_mahs_parallel(tarr, mahs, cfg, diffmah_workers)
             part.update(cast_diffmah_results(res, diffmah_fields, diffmah_dtype))
@@ -363,8 +412,11 @@ def read_forest(comm, config, forest_base: Path, *, col0: int, ncorechunks: int,
     n_local = forest["core_tag"].shape[0]
     n_tot = comm.allreduce(n_local)
     tfit_max = comm.allreduce(tfit, op=MPI.MAX)
+    n_hung = comm.allreduce(int(DIFFMAH_GPU["hung"]))
+    n_cpu = comm.allreduce(DIFFMAH_GPU["cpu_chunks"])
     log(comm, f"forest read: {n_tot} cores in {len(files)} files, {time.time() - t0:.0f} s "
-              f"(diffmah {tfit_max:.0f} s max per rank)")
+              f"(diffmah {tfit_max:.0f} s max per rank; {n_hung} ranks with a hung GPU fit, "
+              f"{n_cpu} chunks fitted on the CPU instead)")
     return forest
 
 
@@ -537,9 +589,12 @@ def write_step_file(path: str, cores: dict, fields: list[str], attrs: dict,
 @click.option("--step-watchdog", type=float, default=1200, show_default=True,
               help="seconds; a rank whose lightcone step takes longer prints the stacks of its "
                    "threads and exits, which ends the run (0: off)")
-@click.option("--read-watchdog", type=float, default=1800, show_default=True,
+@click.option("--read-watchdog", type=float, default=3000, show_default=True,
               help="seconds; the same for the forest read, the diffmah fits and the directory "
-                   "(0: off)")
+                   "(0: off); leaves time for a GPU timeout and CPU fits of the rank's chunks")
+@click.option("--diffmah-gpu-timeout", type=float, default=600, show_default=True,
+              help="seconds; a GPU fit of one forest chunk that has not returned by then is done "
+                   "on the CPU, and so are the rank's later chunks (0: no limit)")
 @click.option("--exchange-window", type=click.IntRange(1), default=8, show_default=True,
               help="rounds of the pairwise exchange in flight")
 @click.option("--exchange-report", type=float, default=300, show_default=True,
@@ -547,12 +602,13 @@ def write_step_file(path: str, cores: dict, fields: list[str], attrs: dict,
 def cli(config_file, core_lightcone_pattern, timestep_file, output_base, ncorechunks,
         forest_files, nwriters, diffmah_fit, diffmah_device, diffmah_workers, diffmah_maxiter,
         diffmah_batch, diffmah_dtype, compression, compression_level, step_watchdog,
-        read_watchdog, exchange_window, exchange_report):
+        read_watchdog, diffmah_gpu_timeout, exchange_window, exchange_report):
     from mpipartition import S2Partition
 
     comm = MPI.COMM_WORLD
     t_start = time.time()
     EXCHANGE.update(window=exchange_window, report_s=exchange_report)
+    DIFFMAH_GPU["timeout_s"] = diffmah_gpu_timeout
     gather_rank_hosts(comm)
     config = CoretreesAssemblyConfig.parse_config(str(config_file))
     sim = config.simulation
@@ -715,6 +771,12 @@ def cli(config_file, core_lightcone_pattern, timestep_file, output_base, ncorech
         with open(f"{output_base}-stats.json", "w") as f:
             json.dump(stats, f, indent=1)
     log(comm, f"done in {time.time() - t_start:.0f} s")
+    if DIFFMAH_GPU["hung"]:
+        # the hung GPU thread could block the interpreter's shutdown (JAX's exit handlers)
+        sys.stdout.flush()
+        sys.stderr.flush()
+        MPI.Finalize()
+        os._exit(0)
 
 
 if __name__ == "__main__":
